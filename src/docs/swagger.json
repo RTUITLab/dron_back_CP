@@ -1,0 +1,453 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a server to get projects from github",
+        "title": "ROSSETI-DRON API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/api/dron",
+    "paths": {
+        "/v1/auth/login": {
+            "post": {
+                "description": "login",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "login",
+                "parameters": [
+                    {
+                        "description": "user info",
+                        "name": "userInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.LoginReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth.LoginResp"
+                        }
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/auth/refresh": {
+            "post": {
+                "description": "refresh",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "refresh",
+                "parameters": [
+                    {
+                        "description": "token",
+                        "name": "token",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.RefreshReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth.LoginResp"
+                        }
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/user": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "get users",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "get users",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "match user on login field",
+                        "name": "login",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "match user on role",
+                        "name": "role",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "users",
+                        "schema": {
+                            "$ref": "#/definitions/user.GetUsersResponce"
+                        }
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "user not found",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "create user with role\nthat can do only admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "create user",
+                "parameters": [
+                    {
+                        "description": "User info",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.CreateUserReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/user.CreateUserResp"
+                        }
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/user/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "update user\nit can do this user or admin",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "update user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "user not found",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "delete user\nthat can do only admin",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "delete user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "user not found",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "auth.LoginReq": {
+            "type": "object",
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.LoginResp": {
+            "type": "object",
+            "properties": {
+                "accesstoken": {
+                    "type": "string"
+                },
+                "refreshToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.RefreshReq": {
+            "type": "object",
+            "properties": {
+                "refreshToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "err.Error": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.CreateUserReq": {
+            "type": "object",
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "student",
+                        "teacher",
+                        "admin"
+                    ]
+                }
+            }
+        },
+        "user.CreateUserResp": {
+            "type": "object",
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.GetUserResponce": {
+            "type": "object",
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.GetUsersResponce": {
+            "type": "object",
+            "properties": {
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/user.GetUserResponce"
+                    }
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

@@ -1,0 +1,298 @@
+basePath: /api/dron
+definitions:
+  auth.LoginReq:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+  auth.LoginResp:
+    properties:
+      accesstoken:
+        type: string
+      refreshToken:
+        type: string
+    type: object
+  auth.RefreshReq:
+    properties:
+      refreshToken:
+        type: string
+    type: object
+  err.Error:
+    properties:
+      error:
+        type: string
+    type: object
+  user.CreateUserReq:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+      role:
+        enum:
+        - student
+        - teacher
+        - admin
+        type: string
+    type: object
+  user.CreateUserResp:
+    properties:
+      login:
+        type: string
+      role:
+        type: string
+    type: object
+  user.GetUserResponce:
+    properties:
+      login:
+        type: string
+      role:
+        type: string
+    type: object
+  user.GetUsersResponce:
+    properties:
+      users:
+        items:
+          $ref: '#/definitions/user.GetUserResponce'
+        type: array
+    type: object
+info:
+  contact: {}
+  description: This is a server to get projects from github
+  title: ROSSETI-DRON API
+  version: "1.0"
+paths:
+  /v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: login
+      parameters:
+      - description: user info
+        in: body
+        name: userInfo
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.LoginResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      summary: login
+      tags:
+      - auth
+  /v1/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: refresh
+      parameters:
+      - description: token
+        in: body
+        name: token
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RefreshReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.LoginResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      summary: refresh
+      tags:
+      - auth
+  /v1/user:
+    get:
+      description: get users
+      parameters:
+      - description: match user on login field
+        in: query
+        name: login
+        type: string
+      - description: match user on role
+        in: query
+        name: role
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      - description: offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: users
+          schema:
+            $ref: '#/definitions/user.GetUsersResponce'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: user not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: get users
+      tags:
+      - user
+    post:
+      consumes:
+      - application/json
+      description: |-
+        create user with role
+        that can do only admin
+      parameters:
+      - description: User info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user.CreateUserReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/user.CreateUserResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: create user
+      tags:
+      - user
+  /v1/user/{id}:
+    delete:
+      description: |-
+        delete user
+        that can do only admin
+      parameters:
+      - description: User id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: user not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: delete user
+      tags:
+      - user
+    put:
+      description: |-
+        update user
+        it can do this user or admin
+      parameters:
+      - description: User id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: user not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: update user
+      tags:
+      - user
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
