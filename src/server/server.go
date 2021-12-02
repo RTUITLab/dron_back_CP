@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent/dialect/sql/schema"
 	"github.com/0B1t322/CP-Rosseti-Back/config"
 	"github.com/0B1t322/CP-Rosseti-Back/controllers/auth"
+	"github.com/0B1t322/CP-Rosseti-Back/controllers/module"
 	"github.com/0B1t322/CP-Rosseti-Back/controllers/role"
 	"github.com/0B1t322/CP-Rosseti-Back/controllers/user"
 	"github.com/0B1t322/CP-Rosseti-Back/db"
@@ -29,6 +30,7 @@ func StartServer() error {
 		User: user.New(client),
 		Role: role.New(client),
 		Auth: auth.New(client, config.Auth.AccessSecret, config.Auth.RefreshSecret),
+		Module: module.New(client),
 	}
 
 	if err := controllers.Role.CreateRoles(context.Background()); err != nil {

@@ -24,6 +24,98 @@ definitions:
       error:
         type: string
     type: object
+  module.AddAnswerResp:
+    properties:
+      answer:
+        type: string
+      correct:
+        type: boolean
+      id:
+        type: integer
+    type: object
+  module.AddQuestionResp:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/module.AddAnswerResp'
+        type: array
+      id:
+        type: integer
+      question:
+        type: string
+    type: object
+  module.AddSubModuleReq:
+    properties:
+      name:
+        type: string
+      text:
+        type: string
+    type: object
+  module.AddSubModuleResp:
+    properties:
+      id:
+        type: integer
+      moduleID:
+        type: integer
+      name:
+        type: string
+      text:
+        type: string
+    type: object
+  module.AddSubModuleTestReq:
+    properties:
+      theoreticalTest:
+        $ref: '#/definitions/module.CreateTheoreticalTestReq'
+    type: object
+  module.AddSubModuleTestResp:
+    properties:
+      id:
+        type: integer
+      theoreticalTest:
+        $ref: '#/definitions/module.AddTheoreticalTestResp'
+    type: object
+  module.AddTheoreticalTestResp:
+    properties:
+      questions:
+        items:
+          $ref: '#/definitions/module.AddQuestionResp'
+        type: array
+    type: object
+  module.CreateAnswerReq:
+    properties:
+      answer:
+        type: string
+      correct:
+        type: boolean
+    type: object
+  module.CreateModuleReq:
+    properties:
+      name:
+        type: string
+    type: object
+  module.CreateModuleResp:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  module.CreateQuestionReq:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/module.CreateAnswerReq'
+        type: array
+      question:
+        type: string
+    type: object
+  module.CreateTheoreticalTestReq:
+    properties:
+      questions:
+        items:
+          $ref: '#/definitions/module.CreateQuestionReq'
+        type: array
+    type: object
   user.CreateUserReq:
     properties:
       login:
@@ -39,6 +131,8 @@ definitions:
     type: object
   user.CreateUserResp:
     properties:
+      int:
+        type: integer
       login:
         type: string
       role:
@@ -46,6 +140,8 @@ definitions:
     type: object
   user.GetUserResponce:
     properties:
+      id:
+        type: integer
       login:
         type: string
       role:
@@ -132,6 +228,138 @@ paths:
       summary: refresh
       tags:
       - auth
+  /v1/module:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        create module
+        that can do only admin
+      parameters:
+      - description: Module info
+        in: body
+        name: module
+        required: true
+        schema:
+          $ref: '#/definitions/module.CreateModuleReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/module.CreateModuleResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: create module
+      tags:
+      - module
+  /v1/module/{id}/submodule:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        add submodule
+        that can do only admin
+      parameters:
+      - description: SubModule info
+        in: body
+        name: submodule
+        required: true
+        schema:
+          $ref: '#/definitions/module.AddSubModuleReq'
+      - description: id of module
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/module.AddSubModuleResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: add submodule
+      tags:
+      - module
+  /v1/module/submodule/{id}/test:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        add submodule test
+        that can do only admin
+      parameters:
+      - description: SubModuleTest info
+        in: body
+        name: submoduletest
+        required: true
+        schema:
+          $ref: '#/definitions/module.AddSubModuleTestReq'
+      - description: id of submodule
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/module.AddSubModuleTestResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: add submodule test
+      tags:
+      - module
   /v1/user:
     get:
       description: get users

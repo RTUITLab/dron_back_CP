@@ -37,6 +37,7 @@ type CreateUserReq struct {
 }
 
 type CreateUserResp struct {
+	ID			int			`json:"int"`
 	Login		string		`json:"login"`
 	Role		string		`json:"role"`
 }
@@ -126,6 +127,7 @@ func (u UserController) CreateUser(c *gin.Context) {
 	c.JSON(
 		http.StatusCreated, 
 		CreateUserResp{
+			ID: created.ID,
 			Login: created.Login,
 			Role: req.Role,
 		},
@@ -263,6 +265,7 @@ func (u UserController) UpdateUser(c *gin.Context) {
 }
 
 type GetUserResponce struct {
+	ID		int		`json:"id"`
 	Login	string	`json:"login"`
 	Role	string	`json:"role"`
 }
@@ -357,7 +360,7 @@ func (u UserController) GetUsers(c *gin.Context) {
 		}
 
 		for _, user := range get {
-			users.Users = append(users.Users, GetUserResponce{Login: user.Login, Role: user.Edges.Role.Role})
+			users.Users = append(users.Users, GetUserResponce{ID: user.ID,Login: user.Login, Role: user.Edges.Role.Role})
 		}
 	}
 

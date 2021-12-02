@@ -8,7 +8,14 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/answer"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/module"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/moduledependcies"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/role"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/user"
 )
 
@@ -30,8 +37,15 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		role.Table: role.ValidColumn,
-		user.Table: user.ValidColumn,
+		answer.Table:           answer.ValidColumn,
+		module.Table:           module.ValidColumn,
+		moduledependcies.Table: moduledependcies.ValidColumn,
+		question.Table:         question.ValidColumn,
+		role.Table:             role.ValidColumn,
+		submodule.Table:        submodule.ValidColumn,
+		submoduletest.Table:    submoduletest.ValidColumn,
+		theoreticaltest.Table:  theoreticaltest.ValidColumn,
+		user.Table:             user.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

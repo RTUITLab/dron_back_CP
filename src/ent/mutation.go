@@ -7,8 +7,15 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/0B1t322/CP-Rosseti-Back/ent/answer"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/module"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/moduledependcies"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/predicate"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/role"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/user"
 
 	"entgo.io/ent"
@@ -23,9 +30,2013 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeRole = "Role"
-	TypeUser = "User"
+	TypeAnswer           = "Answer"
+	TypeModule           = "Module"
+	TypeModuleDependcies = "ModuleDependcies"
+	TypeQuestion         = "Question"
+	TypeRole             = "Role"
+	TypeSubModule        = "SubModule"
+	TypeSubModuleTest    = "SubModuleTest"
+	TypeTheoreticalTest  = "TheoreticalTest"
+	TypeUser             = "User"
 )
+
+// AnswerMutation represents an operation that mutates the Answer nodes in the graph.
+type AnswerMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *int
+	answer            *string
+	correct           *bool
+	clearedFields     map[string]struct{}
+	_Questuion        *int
+	cleared_Questuion bool
+	done              bool
+	oldValue          func(context.Context) (*Answer, error)
+	predicates        []predicate.Answer
+}
+
+var _ ent.Mutation = (*AnswerMutation)(nil)
+
+// answerOption allows management of the mutation configuration using functional options.
+type answerOption func(*AnswerMutation)
+
+// newAnswerMutation creates new mutation for the Answer entity.
+func newAnswerMutation(c config, op Op, opts ...answerOption) *AnswerMutation {
+	m := &AnswerMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAnswer,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAnswerID sets the ID field of the mutation.
+func withAnswerID(id int) answerOption {
+	return func(m *AnswerMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Answer
+		)
+		m.oldValue = func(ctx context.Context) (*Answer, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Answer.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAnswer sets the old Answer of the mutation.
+func withAnswer(node *Answer) answerOption {
+	return func(m *AnswerMutation) {
+		m.oldValue = func(context.Context) (*Answer, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AnswerMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AnswerMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AnswerMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetQuestionID sets the "question_id" field.
+func (m *AnswerMutation) SetQuestionID(i int) {
+	m._Questuion = &i
+}
+
+// QuestionID returns the value of the "question_id" field in the mutation.
+func (m *AnswerMutation) QuestionID() (r int, exists bool) {
+	v := m._Questuion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuestionID returns the old "question_id" field's value of the Answer entity.
+// If the Answer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AnswerMutation) OldQuestionID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldQuestionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldQuestionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuestionID: %w", err)
+	}
+	return oldValue.QuestionID, nil
+}
+
+// ResetQuestionID resets all changes to the "question_id" field.
+func (m *AnswerMutation) ResetQuestionID() {
+	m._Questuion = nil
+}
+
+// SetAnswer sets the "answer" field.
+func (m *AnswerMutation) SetAnswer(s string) {
+	m.answer = &s
+}
+
+// Answer returns the value of the "answer" field in the mutation.
+func (m *AnswerMutation) Answer() (r string, exists bool) {
+	v := m.answer
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnswer returns the old "answer" field's value of the Answer entity.
+// If the Answer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AnswerMutation) OldAnswer(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldAnswer is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldAnswer requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnswer: %w", err)
+	}
+	return oldValue.Answer, nil
+}
+
+// ResetAnswer resets all changes to the "answer" field.
+func (m *AnswerMutation) ResetAnswer() {
+	m.answer = nil
+}
+
+// SetCorrect sets the "correct" field.
+func (m *AnswerMutation) SetCorrect(b bool) {
+	m.correct = &b
+}
+
+// Correct returns the value of the "correct" field in the mutation.
+func (m *AnswerMutation) Correct() (r bool, exists bool) {
+	v := m.correct
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCorrect returns the old "correct" field's value of the Answer entity.
+// If the Answer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AnswerMutation) OldCorrect(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCorrect is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCorrect requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCorrect: %w", err)
+	}
+	return oldValue.Correct, nil
+}
+
+// ResetCorrect resets all changes to the "correct" field.
+func (m *AnswerMutation) ResetCorrect() {
+	m.correct = nil
+}
+
+// SetQuestuionID sets the "Questuion" edge to the Question entity by id.
+func (m *AnswerMutation) SetQuestuionID(id int) {
+	m._Questuion = &id
+}
+
+// ClearQuestuion clears the "Questuion" edge to the Question entity.
+func (m *AnswerMutation) ClearQuestuion() {
+	m.cleared_Questuion = true
+}
+
+// QuestuionCleared reports if the "Questuion" edge to the Question entity was cleared.
+func (m *AnswerMutation) QuestuionCleared() bool {
+	return m.cleared_Questuion
+}
+
+// QuestuionID returns the "Questuion" edge ID in the mutation.
+func (m *AnswerMutation) QuestuionID() (id int, exists bool) {
+	if m._Questuion != nil {
+		return *m._Questuion, true
+	}
+	return
+}
+
+// QuestuionIDs returns the "Questuion" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// QuestuionID instead. It exists only for internal usage by the builders.
+func (m *AnswerMutation) QuestuionIDs() (ids []int) {
+	if id := m._Questuion; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetQuestuion resets all changes to the "Questuion" edge.
+func (m *AnswerMutation) ResetQuestuion() {
+	m._Questuion = nil
+	m.cleared_Questuion = false
+}
+
+// Where appends a list predicates to the AnswerMutation builder.
+func (m *AnswerMutation) Where(ps ...predicate.Answer) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *AnswerMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (Answer).
+func (m *AnswerMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AnswerMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m._Questuion != nil {
+		fields = append(fields, answer.FieldQuestionID)
+	}
+	if m.answer != nil {
+		fields = append(fields, answer.FieldAnswer)
+	}
+	if m.correct != nil {
+		fields = append(fields, answer.FieldCorrect)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AnswerMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case answer.FieldQuestionID:
+		return m.QuestionID()
+	case answer.FieldAnswer:
+		return m.Answer()
+	case answer.FieldCorrect:
+		return m.Correct()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AnswerMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case answer.FieldQuestionID:
+		return m.OldQuestionID(ctx)
+	case answer.FieldAnswer:
+		return m.OldAnswer(ctx)
+	case answer.FieldCorrect:
+		return m.OldCorrect(ctx)
+	}
+	return nil, fmt.Errorf("unknown Answer field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AnswerMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case answer.FieldQuestionID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuestionID(v)
+		return nil
+	case answer.FieldAnswer:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnswer(v)
+		return nil
+	case answer.FieldCorrect:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCorrect(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Answer field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AnswerMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AnswerMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AnswerMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Answer numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AnswerMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AnswerMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AnswerMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Answer nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AnswerMutation) ResetField(name string) error {
+	switch name {
+	case answer.FieldQuestionID:
+		m.ResetQuestionID()
+		return nil
+	case answer.FieldAnswer:
+		m.ResetAnswer()
+		return nil
+	case answer.FieldCorrect:
+		m.ResetCorrect()
+		return nil
+	}
+	return fmt.Errorf("unknown Answer field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AnswerMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m._Questuion != nil {
+		edges = append(edges, answer.EdgeQuestuion)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AnswerMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case answer.EdgeQuestuion:
+		if id := m._Questuion; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AnswerMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AnswerMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AnswerMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleared_Questuion {
+		edges = append(edges, answer.EdgeQuestuion)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AnswerMutation) EdgeCleared(name string) bool {
+	switch name {
+	case answer.EdgeQuestuion:
+		return m.cleared_Questuion
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AnswerMutation) ClearEdge(name string) error {
+	switch name {
+	case answer.EdgeQuestuion:
+		m.ClearQuestuion()
+		return nil
+	}
+	return fmt.Errorf("unknown Answer unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AnswerMutation) ResetEdge(name string) error {
+	switch name {
+	case answer.EdgeQuestuion:
+		m.ResetQuestuion()
+		return nil
+	}
+	return fmt.Errorf("unknown Answer edge %s", name)
+}
+
+// ModuleMutation represents an operation that mutates the Module nodes in the graph.
+type ModuleMutation struct {
+	config
+	op                       Op
+	typ                      string
+	id                       *int
+	name                     *string
+	clearedFields            map[string]struct{}
+	_ModuleDependcies        map[int]struct{}
+	removed_ModuleDependcies map[int]struct{}
+	cleared_ModuleDependcies bool
+	_ModuleDependOn          map[int]struct{}
+	removed_ModuleDependOn   map[int]struct{}
+	cleared_ModuleDependOn   bool
+	_SubModules              map[int]struct{}
+	removed_SubModules       map[int]struct{}
+	cleared_SubModules       bool
+	done                     bool
+	oldValue                 func(context.Context) (*Module, error)
+	predicates               []predicate.Module
+}
+
+var _ ent.Mutation = (*ModuleMutation)(nil)
+
+// moduleOption allows management of the mutation configuration using functional options.
+type moduleOption func(*ModuleMutation)
+
+// newModuleMutation creates new mutation for the Module entity.
+func newModuleMutation(c config, op Op, opts ...moduleOption) *ModuleMutation {
+	m := &ModuleMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeModule,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withModuleID sets the ID field of the mutation.
+func withModuleID(id int) moduleOption {
+	return func(m *ModuleMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Module
+		)
+		m.oldValue = func(ctx context.Context) (*Module, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Module.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withModule sets the old Module of the mutation.
+func withModule(node *Module) moduleOption {
+	return func(m *ModuleMutation) {
+		m.oldValue = func(context.Context) (*Module, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ModuleMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ModuleMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ModuleMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetName sets the "name" field.
+func (m *ModuleMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ModuleMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Module entity.
+// If the Module object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModuleMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ModuleMutation) ResetName() {
+	m.name = nil
+}
+
+// AddModuleDependcyIDs adds the "ModuleDependcies" edge to the ModuleDependcies entity by ids.
+func (m *ModuleMutation) AddModuleDependcyIDs(ids ...int) {
+	if m._ModuleDependcies == nil {
+		m._ModuleDependcies = make(map[int]struct{})
+	}
+	for i := range ids {
+		m._ModuleDependcies[ids[i]] = struct{}{}
+	}
+}
+
+// ClearModuleDependcies clears the "ModuleDependcies" edge to the ModuleDependcies entity.
+func (m *ModuleMutation) ClearModuleDependcies() {
+	m.cleared_ModuleDependcies = true
+}
+
+// ModuleDependciesCleared reports if the "ModuleDependcies" edge to the ModuleDependcies entity was cleared.
+func (m *ModuleMutation) ModuleDependciesCleared() bool {
+	return m.cleared_ModuleDependcies
+}
+
+// RemoveModuleDependcyIDs removes the "ModuleDependcies" edge to the ModuleDependcies entity by IDs.
+func (m *ModuleMutation) RemoveModuleDependcyIDs(ids ...int) {
+	if m.removed_ModuleDependcies == nil {
+		m.removed_ModuleDependcies = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m._ModuleDependcies, ids[i])
+		m.removed_ModuleDependcies[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedModuleDependcies returns the removed IDs of the "ModuleDependcies" edge to the ModuleDependcies entity.
+func (m *ModuleMutation) RemovedModuleDependciesIDs() (ids []int) {
+	for id := range m.removed_ModuleDependcies {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ModuleDependciesIDs returns the "ModuleDependcies" edge IDs in the mutation.
+func (m *ModuleMutation) ModuleDependciesIDs() (ids []int) {
+	for id := range m._ModuleDependcies {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetModuleDependcies resets all changes to the "ModuleDependcies" edge.
+func (m *ModuleMutation) ResetModuleDependcies() {
+	m._ModuleDependcies = nil
+	m.cleared_ModuleDependcies = false
+	m.removed_ModuleDependcies = nil
+}
+
+// AddModuleDependOnIDs adds the "ModuleDependOn" edge to the ModuleDependcies entity by ids.
+func (m *ModuleMutation) AddModuleDependOnIDs(ids ...int) {
+	if m._ModuleDependOn == nil {
+		m._ModuleDependOn = make(map[int]struct{})
+	}
+	for i := range ids {
+		m._ModuleDependOn[ids[i]] = struct{}{}
+	}
+}
+
+// ClearModuleDependOn clears the "ModuleDependOn" edge to the ModuleDependcies entity.
+func (m *ModuleMutation) ClearModuleDependOn() {
+	m.cleared_ModuleDependOn = true
+}
+
+// ModuleDependOnCleared reports if the "ModuleDependOn" edge to the ModuleDependcies entity was cleared.
+func (m *ModuleMutation) ModuleDependOnCleared() bool {
+	return m.cleared_ModuleDependOn
+}
+
+// RemoveModuleDependOnIDs removes the "ModuleDependOn" edge to the ModuleDependcies entity by IDs.
+func (m *ModuleMutation) RemoveModuleDependOnIDs(ids ...int) {
+	if m.removed_ModuleDependOn == nil {
+		m.removed_ModuleDependOn = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m._ModuleDependOn, ids[i])
+		m.removed_ModuleDependOn[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedModuleDependOn returns the removed IDs of the "ModuleDependOn" edge to the ModuleDependcies entity.
+func (m *ModuleMutation) RemovedModuleDependOnIDs() (ids []int) {
+	for id := range m.removed_ModuleDependOn {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ModuleDependOnIDs returns the "ModuleDependOn" edge IDs in the mutation.
+func (m *ModuleMutation) ModuleDependOnIDs() (ids []int) {
+	for id := range m._ModuleDependOn {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetModuleDependOn resets all changes to the "ModuleDependOn" edge.
+func (m *ModuleMutation) ResetModuleDependOn() {
+	m._ModuleDependOn = nil
+	m.cleared_ModuleDependOn = false
+	m.removed_ModuleDependOn = nil
+}
+
+// AddSubModuleIDs adds the "SubModules" edge to the SubModule entity by ids.
+func (m *ModuleMutation) AddSubModuleIDs(ids ...int) {
+	if m._SubModules == nil {
+		m._SubModules = make(map[int]struct{})
+	}
+	for i := range ids {
+		m._SubModules[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSubModules clears the "SubModules" edge to the SubModule entity.
+func (m *ModuleMutation) ClearSubModules() {
+	m.cleared_SubModules = true
+}
+
+// SubModulesCleared reports if the "SubModules" edge to the SubModule entity was cleared.
+func (m *ModuleMutation) SubModulesCleared() bool {
+	return m.cleared_SubModules
+}
+
+// RemoveSubModuleIDs removes the "SubModules" edge to the SubModule entity by IDs.
+func (m *ModuleMutation) RemoveSubModuleIDs(ids ...int) {
+	if m.removed_SubModules == nil {
+		m.removed_SubModules = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m._SubModules, ids[i])
+		m.removed_SubModules[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSubModules returns the removed IDs of the "SubModules" edge to the SubModule entity.
+func (m *ModuleMutation) RemovedSubModulesIDs() (ids []int) {
+	for id := range m.removed_SubModules {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SubModulesIDs returns the "SubModules" edge IDs in the mutation.
+func (m *ModuleMutation) SubModulesIDs() (ids []int) {
+	for id := range m._SubModules {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSubModules resets all changes to the "SubModules" edge.
+func (m *ModuleMutation) ResetSubModules() {
+	m._SubModules = nil
+	m.cleared_SubModules = false
+	m.removed_SubModules = nil
+}
+
+// Where appends a list predicates to the ModuleMutation builder.
+func (m *ModuleMutation) Where(ps ...predicate.Module) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *ModuleMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (Module).
+func (m *ModuleMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ModuleMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.name != nil {
+		fields = append(fields, module.FieldName)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ModuleMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case module.FieldName:
+		return m.Name()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ModuleMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case module.FieldName:
+		return m.OldName(ctx)
+	}
+	return nil, fmt.Errorf("unknown Module field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ModuleMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case module.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Module field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ModuleMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ModuleMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ModuleMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Module numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ModuleMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ModuleMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ModuleMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Module nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ModuleMutation) ResetField(name string) error {
+	switch name {
+	case module.FieldName:
+		m.ResetName()
+		return nil
+	}
+	return fmt.Errorf("unknown Module field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ModuleMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m._ModuleDependcies != nil {
+		edges = append(edges, module.EdgeModuleDependcies)
+	}
+	if m._ModuleDependOn != nil {
+		edges = append(edges, module.EdgeModuleDependOn)
+	}
+	if m._SubModules != nil {
+		edges = append(edges, module.EdgeSubModules)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ModuleMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case module.EdgeModuleDependcies:
+		ids := make([]ent.Value, 0, len(m._ModuleDependcies))
+		for id := range m._ModuleDependcies {
+			ids = append(ids, id)
+		}
+		return ids
+	case module.EdgeModuleDependOn:
+		ids := make([]ent.Value, 0, len(m._ModuleDependOn))
+		for id := range m._ModuleDependOn {
+			ids = append(ids, id)
+		}
+		return ids
+	case module.EdgeSubModules:
+		ids := make([]ent.Value, 0, len(m._SubModules))
+		for id := range m._SubModules {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ModuleMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removed_ModuleDependcies != nil {
+		edges = append(edges, module.EdgeModuleDependcies)
+	}
+	if m.removed_ModuleDependOn != nil {
+		edges = append(edges, module.EdgeModuleDependOn)
+	}
+	if m.removed_SubModules != nil {
+		edges = append(edges, module.EdgeSubModules)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ModuleMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case module.EdgeModuleDependcies:
+		ids := make([]ent.Value, 0, len(m.removed_ModuleDependcies))
+		for id := range m.removed_ModuleDependcies {
+			ids = append(ids, id)
+		}
+		return ids
+	case module.EdgeModuleDependOn:
+		ids := make([]ent.Value, 0, len(m.removed_ModuleDependOn))
+		for id := range m.removed_ModuleDependOn {
+			ids = append(ids, id)
+		}
+		return ids
+	case module.EdgeSubModules:
+		ids := make([]ent.Value, 0, len(m.removed_SubModules))
+		for id := range m.removed_SubModules {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ModuleMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.cleared_ModuleDependcies {
+		edges = append(edges, module.EdgeModuleDependcies)
+	}
+	if m.cleared_ModuleDependOn {
+		edges = append(edges, module.EdgeModuleDependOn)
+	}
+	if m.cleared_SubModules {
+		edges = append(edges, module.EdgeSubModules)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ModuleMutation) EdgeCleared(name string) bool {
+	switch name {
+	case module.EdgeModuleDependcies:
+		return m.cleared_ModuleDependcies
+	case module.EdgeModuleDependOn:
+		return m.cleared_ModuleDependOn
+	case module.EdgeSubModules:
+		return m.cleared_SubModules
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ModuleMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Module unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ModuleMutation) ResetEdge(name string) error {
+	switch name {
+	case module.EdgeModuleDependcies:
+		m.ResetModuleDependcies()
+		return nil
+	case module.EdgeModuleDependOn:
+		m.ResetModuleDependOn()
+		return nil
+	case module.EdgeSubModules:
+		m.ResetSubModules()
+		return nil
+	}
+	return fmt.Errorf("unknown Module edge %s", name)
+}
+
+// ModuleDependciesMutation represents an operation that mutates the ModuleDependcies nodes in the graph.
+type ModuleDependciesMutation struct {
+	config
+	op                       Op
+	typ                      string
+	id                       *int
+	clearedFields            map[string]struct{}
+	_ModuleDependcies        *int
+	cleared_ModuleDependcies bool
+	_ModuleDependOn          *int
+	cleared_ModuleDependOn   bool
+	done                     bool
+	oldValue                 func(context.Context) (*ModuleDependcies, error)
+	predicates               []predicate.ModuleDependcies
+}
+
+var _ ent.Mutation = (*ModuleDependciesMutation)(nil)
+
+// moduledependciesOption allows management of the mutation configuration using functional options.
+type moduledependciesOption func(*ModuleDependciesMutation)
+
+// newModuleDependciesMutation creates new mutation for the ModuleDependcies entity.
+func newModuleDependciesMutation(c config, op Op, opts ...moduledependciesOption) *ModuleDependciesMutation {
+	m := &ModuleDependciesMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeModuleDependcies,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withModuleDependciesID sets the ID field of the mutation.
+func withModuleDependciesID(id int) moduledependciesOption {
+	return func(m *ModuleDependciesMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ModuleDependcies
+		)
+		m.oldValue = func(ctx context.Context) (*ModuleDependcies, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ModuleDependcies.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withModuleDependcies sets the old ModuleDependcies of the mutation.
+func withModuleDependcies(node *ModuleDependcies) moduledependciesOption {
+	return func(m *ModuleDependciesMutation) {
+		m.oldValue = func(context.Context) (*ModuleDependcies, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ModuleDependciesMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ModuleDependciesMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ModuleDependciesMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetDependentID sets the "dependent_id" field.
+func (m *ModuleDependciesMutation) SetDependentID(i int) {
+	m._ModuleDependcies = &i
+}
+
+// DependentID returns the value of the "dependent_id" field in the mutation.
+func (m *ModuleDependciesMutation) DependentID() (r int, exists bool) {
+	v := m._ModuleDependcies
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDependentID returns the old "dependent_id" field's value of the ModuleDependcies entity.
+// If the ModuleDependcies object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModuleDependciesMutation) OldDependentID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldDependentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldDependentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDependentID: %w", err)
+	}
+	return oldValue.DependentID, nil
+}
+
+// ResetDependentID resets all changes to the "dependent_id" field.
+func (m *ModuleDependciesMutation) ResetDependentID() {
+	m._ModuleDependcies = nil
+}
+
+// SetDependentOnID sets the "dependent_on_id" field.
+func (m *ModuleDependciesMutation) SetDependentOnID(i int) {
+	m._ModuleDependOn = &i
+}
+
+// DependentOnID returns the value of the "dependent_on_id" field in the mutation.
+func (m *ModuleDependciesMutation) DependentOnID() (r int, exists bool) {
+	v := m._ModuleDependOn
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDependentOnID returns the old "dependent_on_id" field's value of the ModuleDependcies entity.
+// If the ModuleDependcies object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModuleDependciesMutation) OldDependentOnID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldDependentOnID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldDependentOnID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDependentOnID: %w", err)
+	}
+	return oldValue.DependentOnID, nil
+}
+
+// ResetDependentOnID resets all changes to the "dependent_on_id" field.
+func (m *ModuleDependciesMutation) ResetDependentOnID() {
+	m._ModuleDependOn = nil
+}
+
+// SetModuleDependciesID sets the "ModuleDependcies" edge to the Module entity by id.
+func (m *ModuleDependciesMutation) SetModuleDependciesID(id int) {
+	m._ModuleDependcies = &id
+}
+
+// ClearModuleDependcies clears the "ModuleDependcies" edge to the Module entity.
+func (m *ModuleDependciesMutation) ClearModuleDependcies() {
+	m.cleared_ModuleDependcies = true
+}
+
+// ModuleDependciesCleared reports if the "ModuleDependcies" edge to the Module entity was cleared.
+func (m *ModuleDependciesMutation) ModuleDependciesCleared() bool {
+	return m.cleared_ModuleDependcies
+}
+
+// ModuleDependciesID returns the "ModuleDependcies" edge ID in the mutation.
+func (m *ModuleDependciesMutation) ModuleDependciesID() (id int, exists bool) {
+	if m._ModuleDependcies != nil {
+		return *m._ModuleDependcies, true
+	}
+	return
+}
+
+// ModuleDependciesIDs returns the "ModuleDependcies" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ModuleDependciesID instead. It exists only for internal usage by the builders.
+func (m *ModuleDependciesMutation) ModuleDependciesIDs() (ids []int) {
+	if id := m._ModuleDependcies; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetModuleDependcies resets all changes to the "ModuleDependcies" edge.
+func (m *ModuleDependciesMutation) ResetModuleDependcies() {
+	m._ModuleDependcies = nil
+	m.cleared_ModuleDependcies = false
+}
+
+// SetModuleDependOnID sets the "ModuleDependOn" edge to the Module entity by id.
+func (m *ModuleDependciesMutation) SetModuleDependOnID(id int) {
+	m._ModuleDependOn = &id
+}
+
+// ClearModuleDependOn clears the "ModuleDependOn" edge to the Module entity.
+func (m *ModuleDependciesMutation) ClearModuleDependOn() {
+	m.cleared_ModuleDependOn = true
+}
+
+// ModuleDependOnCleared reports if the "ModuleDependOn" edge to the Module entity was cleared.
+func (m *ModuleDependciesMutation) ModuleDependOnCleared() bool {
+	return m.cleared_ModuleDependOn
+}
+
+// ModuleDependOnID returns the "ModuleDependOn" edge ID in the mutation.
+func (m *ModuleDependciesMutation) ModuleDependOnID() (id int, exists bool) {
+	if m._ModuleDependOn != nil {
+		return *m._ModuleDependOn, true
+	}
+	return
+}
+
+// ModuleDependOnIDs returns the "ModuleDependOn" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ModuleDependOnID instead. It exists only for internal usage by the builders.
+func (m *ModuleDependciesMutation) ModuleDependOnIDs() (ids []int) {
+	if id := m._ModuleDependOn; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetModuleDependOn resets all changes to the "ModuleDependOn" edge.
+func (m *ModuleDependciesMutation) ResetModuleDependOn() {
+	m._ModuleDependOn = nil
+	m.cleared_ModuleDependOn = false
+}
+
+// Where appends a list predicates to the ModuleDependciesMutation builder.
+func (m *ModuleDependciesMutation) Where(ps ...predicate.ModuleDependcies) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *ModuleDependciesMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (ModuleDependcies).
+func (m *ModuleDependciesMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ModuleDependciesMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m._ModuleDependcies != nil {
+		fields = append(fields, moduledependcies.FieldDependentID)
+	}
+	if m._ModuleDependOn != nil {
+		fields = append(fields, moduledependcies.FieldDependentOnID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ModuleDependciesMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case moduledependcies.FieldDependentID:
+		return m.DependentID()
+	case moduledependcies.FieldDependentOnID:
+		return m.DependentOnID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ModuleDependciesMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case moduledependcies.FieldDependentID:
+		return m.OldDependentID(ctx)
+	case moduledependcies.FieldDependentOnID:
+		return m.OldDependentOnID(ctx)
+	}
+	return nil, fmt.Errorf("unknown ModuleDependcies field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ModuleDependciesMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case moduledependcies.FieldDependentID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDependentID(v)
+		return nil
+	case moduledependcies.FieldDependentOnID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDependentOnID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ModuleDependcies field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ModuleDependciesMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ModuleDependciesMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ModuleDependciesMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ModuleDependcies numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ModuleDependciesMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ModuleDependciesMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ModuleDependciesMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ModuleDependcies nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ModuleDependciesMutation) ResetField(name string) error {
+	switch name {
+	case moduledependcies.FieldDependentID:
+		m.ResetDependentID()
+		return nil
+	case moduledependcies.FieldDependentOnID:
+		m.ResetDependentOnID()
+		return nil
+	}
+	return fmt.Errorf("unknown ModuleDependcies field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ModuleDependciesMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m._ModuleDependcies != nil {
+		edges = append(edges, moduledependcies.EdgeModuleDependcies)
+	}
+	if m._ModuleDependOn != nil {
+		edges = append(edges, moduledependcies.EdgeModuleDependOn)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ModuleDependciesMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case moduledependcies.EdgeModuleDependcies:
+		if id := m._ModuleDependcies; id != nil {
+			return []ent.Value{*id}
+		}
+	case moduledependcies.EdgeModuleDependOn:
+		if id := m._ModuleDependOn; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ModuleDependciesMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ModuleDependciesMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ModuleDependciesMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleared_ModuleDependcies {
+		edges = append(edges, moduledependcies.EdgeModuleDependcies)
+	}
+	if m.cleared_ModuleDependOn {
+		edges = append(edges, moduledependcies.EdgeModuleDependOn)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ModuleDependciesMutation) EdgeCleared(name string) bool {
+	switch name {
+	case moduledependcies.EdgeModuleDependcies:
+		return m.cleared_ModuleDependcies
+	case moduledependcies.EdgeModuleDependOn:
+		return m.cleared_ModuleDependOn
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ModuleDependciesMutation) ClearEdge(name string) error {
+	switch name {
+	case moduledependcies.EdgeModuleDependcies:
+		m.ClearModuleDependcies()
+		return nil
+	case moduledependcies.EdgeModuleDependOn:
+		m.ClearModuleDependOn()
+		return nil
+	}
+	return fmt.Errorf("unknown ModuleDependcies unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ModuleDependciesMutation) ResetEdge(name string) error {
+	switch name {
+	case moduledependcies.EdgeModuleDependcies:
+		m.ResetModuleDependcies()
+		return nil
+	case moduledependcies.EdgeModuleDependOn:
+		m.ResetModuleDependOn()
+		return nil
+	}
+	return fmt.Errorf("unknown ModuleDependcies edge %s", name)
+}
+
+// QuestionMutation represents an operation that mutates the Question nodes in the graph.
+type QuestionMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *int
+	question                *string
+	clearedFields           map[string]struct{}
+	_TheoreticalTest        *int
+	cleared_TheoreticalTest bool
+	_Answer                 map[int]struct{}
+	removed_Answer          map[int]struct{}
+	cleared_Answer          bool
+	done                    bool
+	oldValue                func(context.Context) (*Question, error)
+	predicates              []predicate.Question
+}
+
+var _ ent.Mutation = (*QuestionMutation)(nil)
+
+// questionOption allows management of the mutation configuration using functional options.
+type questionOption func(*QuestionMutation)
+
+// newQuestionMutation creates new mutation for the Question entity.
+func newQuestionMutation(c config, op Op, opts ...questionOption) *QuestionMutation {
+	m := &QuestionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeQuestion,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withQuestionID sets the ID field of the mutation.
+func withQuestionID(id int) questionOption {
+	return func(m *QuestionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Question
+		)
+		m.oldValue = func(ctx context.Context) (*Question, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Question.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withQuestion sets the old Question of the mutation.
+func withQuestion(node *Question) questionOption {
+	return func(m *QuestionMutation) {
+		m.oldValue = func(context.Context) (*Question, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m QuestionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m QuestionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *QuestionMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetTheoricalTestID sets the "theorical_test_id" field.
+func (m *QuestionMutation) SetTheoricalTestID(i int) {
+	m._TheoreticalTest = &i
+}
+
+// TheoricalTestID returns the value of the "theorical_test_id" field in the mutation.
+func (m *QuestionMutation) TheoricalTestID() (r int, exists bool) {
+	v := m._TheoreticalTest
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTheoricalTestID returns the old "theorical_test_id" field's value of the Question entity.
+// If the Question object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QuestionMutation) OldTheoricalTestID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTheoricalTestID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTheoricalTestID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTheoricalTestID: %w", err)
+	}
+	return oldValue.TheoricalTestID, nil
+}
+
+// ResetTheoricalTestID resets all changes to the "theorical_test_id" field.
+func (m *QuestionMutation) ResetTheoricalTestID() {
+	m._TheoreticalTest = nil
+}
+
+// SetQuestion sets the "question" field.
+func (m *QuestionMutation) SetQuestion(s string) {
+	m.question = &s
+}
+
+// Question returns the value of the "question" field in the mutation.
+func (m *QuestionMutation) Question() (r string, exists bool) {
+	v := m.question
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuestion returns the old "question" field's value of the Question entity.
+// If the Question object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QuestionMutation) OldQuestion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldQuestion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldQuestion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuestion: %w", err)
+	}
+	return oldValue.Question, nil
+}
+
+// ResetQuestion resets all changes to the "question" field.
+func (m *QuestionMutation) ResetQuestion() {
+	m.question = nil
+}
+
+// SetTheoreticalTestID sets the "TheoreticalTest" edge to the TheoreticalTest entity by id.
+func (m *QuestionMutation) SetTheoreticalTestID(id int) {
+	m._TheoreticalTest = &id
+}
+
+// ClearTheoreticalTest clears the "TheoreticalTest" edge to the TheoreticalTest entity.
+func (m *QuestionMutation) ClearTheoreticalTest() {
+	m.cleared_TheoreticalTest = true
+}
+
+// TheoreticalTestCleared reports if the "TheoreticalTest" edge to the TheoreticalTest entity was cleared.
+func (m *QuestionMutation) TheoreticalTestCleared() bool {
+	return m.cleared_TheoreticalTest
+}
+
+// TheoreticalTestID returns the "TheoreticalTest" edge ID in the mutation.
+func (m *QuestionMutation) TheoreticalTestID() (id int, exists bool) {
+	if m._TheoreticalTest != nil {
+		return *m._TheoreticalTest, true
+	}
+	return
+}
+
+// TheoreticalTestIDs returns the "TheoreticalTest" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TheoreticalTestID instead. It exists only for internal usage by the builders.
+func (m *QuestionMutation) TheoreticalTestIDs() (ids []int) {
+	if id := m._TheoreticalTest; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTheoreticalTest resets all changes to the "TheoreticalTest" edge.
+func (m *QuestionMutation) ResetTheoreticalTest() {
+	m._TheoreticalTest = nil
+	m.cleared_TheoreticalTest = false
+}
+
+// AddAnswerIDs adds the "Answer" edge to the Answer entity by ids.
+func (m *QuestionMutation) AddAnswerIDs(ids ...int) {
+	if m._Answer == nil {
+		m._Answer = make(map[int]struct{})
+	}
+	for i := range ids {
+		m._Answer[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAnswer clears the "Answer" edge to the Answer entity.
+func (m *QuestionMutation) ClearAnswer() {
+	m.cleared_Answer = true
+}
+
+// AnswerCleared reports if the "Answer" edge to the Answer entity was cleared.
+func (m *QuestionMutation) AnswerCleared() bool {
+	return m.cleared_Answer
+}
+
+// RemoveAnswerIDs removes the "Answer" edge to the Answer entity by IDs.
+func (m *QuestionMutation) RemoveAnswerIDs(ids ...int) {
+	if m.removed_Answer == nil {
+		m.removed_Answer = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m._Answer, ids[i])
+		m.removed_Answer[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAnswer returns the removed IDs of the "Answer" edge to the Answer entity.
+func (m *QuestionMutation) RemovedAnswerIDs() (ids []int) {
+	for id := range m.removed_Answer {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AnswerIDs returns the "Answer" edge IDs in the mutation.
+func (m *QuestionMutation) AnswerIDs() (ids []int) {
+	for id := range m._Answer {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAnswer resets all changes to the "Answer" edge.
+func (m *QuestionMutation) ResetAnswer() {
+	m._Answer = nil
+	m.cleared_Answer = false
+	m.removed_Answer = nil
+}
+
+// Where appends a list predicates to the QuestionMutation builder.
+func (m *QuestionMutation) Where(ps ...predicate.Question) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *QuestionMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (Question).
+func (m *QuestionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *QuestionMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m._TheoreticalTest != nil {
+		fields = append(fields, question.FieldTheoricalTestID)
+	}
+	if m.question != nil {
+		fields = append(fields, question.FieldQuestion)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *QuestionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case question.FieldTheoricalTestID:
+		return m.TheoricalTestID()
+	case question.FieldQuestion:
+		return m.Question()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *QuestionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case question.FieldTheoricalTestID:
+		return m.OldTheoricalTestID(ctx)
+	case question.FieldQuestion:
+		return m.OldQuestion(ctx)
+	}
+	return nil, fmt.Errorf("unknown Question field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *QuestionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case question.FieldTheoricalTestID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTheoricalTestID(v)
+		return nil
+	case question.FieldQuestion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuestion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Question field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *QuestionMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *QuestionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *QuestionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Question numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *QuestionMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *QuestionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *QuestionMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Question nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *QuestionMutation) ResetField(name string) error {
+	switch name {
+	case question.FieldTheoricalTestID:
+		m.ResetTheoricalTestID()
+		return nil
+	case question.FieldQuestion:
+		m.ResetQuestion()
+		return nil
+	}
+	return fmt.Errorf("unknown Question field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *QuestionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m._TheoreticalTest != nil {
+		edges = append(edges, question.EdgeTheoreticalTest)
+	}
+	if m._Answer != nil {
+		edges = append(edges, question.EdgeAnswer)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *QuestionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case question.EdgeTheoreticalTest:
+		if id := m._TheoreticalTest; id != nil {
+			return []ent.Value{*id}
+		}
+	case question.EdgeAnswer:
+		ids := make([]ent.Value, 0, len(m._Answer))
+		for id := range m._Answer {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *QuestionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removed_Answer != nil {
+		edges = append(edges, question.EdgeAnswer)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *QuestionMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case question.EdgeAnswer:
+		ids := make([]ent.Value, 0, len(m.removed_Answer))
+		for id := range m.removed_Answer {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *QuestionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleared_TheoreticalTest {
+		edges = append(edges, question.EdgeTheoreticalTest)
+	}
+	if m.cleared_Answer {
+		edges = append(edges, question.EdgeAnswer)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *QuestionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case question.EdgeTheoreticalTest:
+		return m.cleared_TheoreticalTest
+	case question.EdgeAnswer:
+		return m.cleared_Answer
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *QuestionMutation) ClearEdge(name string) error {
+	switch name {
+	case question.EdgeTheoreticalTest:
+		m.ClearTheoreticalTest()
+		return nil
+	}
+	return fmt.Errorf("unknown Question unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *QuestionMutation) ResetEdge(name string) error {
+	switch name {
+	case question.EdgeTheoreticalTest:
+		m.ResetTheoreticalTest()
+		return nil
+	case question.EdgeAnswer:
+		m.ResetAnswer()
+		return nil
+	}
+	return fmt.Errorf("unknown Question edge %s", name)
+}
 
 // RoleMutation represents an operation that mutates the Role nodes in the graph.
 type RoleMutation struct {
@@ -410,6 +2421,1348 @@ func (m *RoleMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Role edge %s", name)
+}
+
+// SubModuleMutation represents an operation that mutates the SubModule nodes in the graph.
+type SubModuleMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	name           *string
+	text           *string
+	clearedFields  map[string]struct{}
+	_Module        *int
+	cleared_Module bool
+	_Test          *int
+	cleared_Test   bool
+	done           bool
+	oldValue       func(context.Context) (*SubModule, error)
+	predicates     []predicate.SubModule
+}
+
+var _ ent.Mutation = (*SubModuleMutation)(nil)
+
+// submoduleOption allows management of the mutation configuration using functional options.
+type submoduleOption func(*SubModuleMutation)
+
+// newSubModuleMutation creates new mutation for the SubModule entity.
+func newSubModuleMutation(c config, op Op, opts ...submoduleOption) *SubModuleMutation {
+	m := &SubModuleMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSubModule,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSubModuleID sets the ID field of the mutation.
+func withSubModuleID(id int) submoduleOption {
+	return func(m *SubModuleMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SubModule
+		)
+		m.oldValue = func(ctx context.Context) (*SubModule, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SubModule.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSubModule sets the old SubModule of the mutation.
+func withSubModule(node *SubModule) submoduleOption {
+	return func(m *SubModuleMutation) {
+		m.oldValue = func(context.Context) (*SubModule, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SubModuleMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SubModuleMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SubModuleMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetName sets the "name" field.
+func (m *SubModuleMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *SubModuleMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the SubModule entity.
+// If the SubModule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SubModuleMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *SubModuleMutation) ResetName() {
+	m.name = nil
+}
+
+// SetText sets the "text" field.
+func (m *SubModuleMutation) SetText(s string) {
+	m.text = &s
+}
+
+// Text returns the value of the "text" field in the mutation.
+func (m *SubModuleMutation) Text() (r string, exists bool) {
+	v := m.text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldText returns the old "text" field's value of the SubModule entity.
+// If the SubModule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SubModuleMutation) OldText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldText: %w", err)
+	}
+	return oldValue.Text, nil
+}
+
+// ResetText resets all changes to the "text" field.
+func (m *SubModuleMutation) ResetText() {
+	m.text = nil
+}
+
+// SetModuleID sets the "Module" edge to the Module entity by id.
+func (m *SubModuleMutation) SetModuleID(id int) {
+	m._Module = &id
+}
+
+// ClearModule clears the "Module" edge to the Module entity.
+func (m *SubModuleMutation) ClearModule() {
+	m.cleared_Module = true
+}
+
+// ModuleCleared reports if the "Module" edge to the Module entity was cleared.
+func (m *SubModuleMutation) ModuleCleared() bool {
+	return m.cleared_Module
+}
+
+// ModuleID returns the "Module" edge ID in the mutation.
+func (m *SubModuleMutation) ModuleID() (id int, exists bool) {
+	if m._Module != nil {
+		return *m._Module, true
+	}
+	return
+}
+
+// ModuleIDs returns the "Module" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ModuleID instead. It exists only for internal usage by the builders.
+func (m *SubModuleMutation) ModuleIDs() (ids []int) {
+	if id := m._Module; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetModule resets all changes to the "Module" edge.
+func (m *SubModuleMutation) ResetModule() {
+	m._Module = nil
+	m.cleared_Module = false
+}
+
+// SetTestID sets the "Test" edge to the SubModuleTest entity by id.
+func (m *SubModuleMutation) SetTestID(id int) {
+	m._Test = &id
+}
+
+// ClearTest clears the "Test" edge to the SubModuleTest entity.
+func (m *SubModuleMutation) ClearTest() {
+	m.cleared_Test = true
+}
+
+// TestCleared reports if the "Test" edge to the SubModuleTest entity was cleared.
+func (m *SubModuleMutation) TestCleared() bool {
+	return m.cleared_Test
+}
+
+// TestID returns the "Test" edge ID in the mutation.
+func (m *SubModuleMutation) TestID() (id int, exists bool) {
+	if m._Test != nil {
+		return *m._Test, true
+	}
+	return
+}
+
+// TestIDs returns the "Test" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TestID instead. It exists only for internal usage by the builders.
+func (m *SubModuleMutation) TestIDs() (ids []int) {
+	if id := m._Test; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTest resets all changes to the "Test" edge.
+func (m *SubModuleMutation) ResetTest() {
+	m._Test = nil
+	m.cleared_Test = false
+}
+
+// Where appends a list predicates to the SubModuleMutation builder.
+func (m *SubModuleMutation) Where(ps ...predicate.SubModule) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *SubModuleMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (SubModule).
+func (m *SubModuleMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SubModuleMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.name != nil {
+		fields = append(fields, submodule.FieldName)
+	}
+	if m.text != nil {
+		fields = append(fields, submodule.FieldText)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SubModuleMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case submodule.FieldName:
+		return m.Name()
+	case submodule.FieldText:
+		return m.Text()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SubModuleMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case submodule.FieldName:
+		return m.OldName(ctx)
+	case submodule.FieldText:
+		return m.OldText(ctx)
+	}
+	return nil, fmt.Errorf("unknown SubModule field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SubModuleMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case submodule.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case submodule.FieldText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetText(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SubModule field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SubModuleMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SubModuleMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SubModuleMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown SubModule numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SubModuleMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SubModuleMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SubModuleMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown SubModule nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SubModuleMutation) ResetField(name string) error {
+	switch name {
+	case submodule.FieldName:
+		m.ResetName()
+		return nil
+	case submodule.FieldText:
+		m.ResetText()
+		return nil
+	}
+	return fmt.Errorf("unknown SubModule field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SubModuleMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m._Module != nil {
+		edges = append(edges, submodule.EdgeModule)
+	}
+	if m._Test != nil {
+		edges = append(edges, submodule.EdgeTest)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SubModuleMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case submodule.EdgeModule:
+		if id := m._Module; id != nil {
+			return []ent.Value{*id}
+		}
+	case submodule.EdgeTest:
+		if id := m._Test; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SubModuleMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SubModuleMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SubModuleMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleared_Module {
+		edges = append(edges, submodule.EdgeModule)
+	}
+	if m.cleared_Test {
+		edges = append(edges, submodule.EdgeTest)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SubModuleMutation) EdgeCleared(name string) bool {
+	switch name {
+	case submodule.EdgeModule:
+		return m.cleared_Module
+	case submodule.EdgeTest:
+		return m.cleared_Test
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SubModuleMutation) ClearEdge(name string) error {
+	switch name {
+	case submodule.EdgeModule:
+		m.ClearModule()
+		return nil
+	case submodule.EdgeTest:
+		m.ClearTest()
+		return nil
+	}
+	return fmt.Errorf("unknown SubModule unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SubModuleMutation) ResetEdge(name string) error {
+	switch name {
+	case submodule.EdgeModule:
+		m.ResetModule()
+		return nil
+	case submodule.EdgeTest:
+		m.ResetTest()
+		return nil
+	}
+	return fmt.Errorf("unknown SubModule edge %s", name)
+}
+
+// SubModuleTestMutation represents an operation that mutates the SubModuleTest nodes in the graph.
+type SubModuleTestMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *int
+	clearedFields     map[string]struct{}
+	_SubModule        *int
+	cleared_SubModule bool
+	_TherTest         *int
+	cleared_TherTest  bool
+	done              bool
+	oldValue          func(context.Context) (*SubModuleTest, error)
+	predicates        []predicate.SubModuleTest
+}
+
+var _ ent.Mutation = (*SubModuleTestMutation)(nil)
+
+// submoduletestOption allows management of the mutation configuration using functional options.
+type submoduletestOption func(*SubModuleTestMutation)
+
+// newSubModuleTestMutation creates new mutation for the SubModuleTest entity.
+func newSubModuleTestMutation(c config, op Op, opts ...submoduletestOption) *SubModuleTestMutation {
+	m := &SubModuleTestMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSubModuleTest,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSubModuleTestID sets the ID field of the mutation.
+func withSubModuleTestID(id int) submoduletestOption {
+	return func(m *SubModuleTestMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SubModuleTest
+		)
+		m.oldValue = func(ctx context.Context) (*SubModuleTest, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SubModuleTest.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSubModuleTest sets the old SubModuleTest of the mutation.
+func withSubModuleTest(node *SubModuleTest) submoduletestOption {
+	return func(m *SubModuleTestMutation) {
+		m.oldValue = func(context.Context) (*SubModuleTest, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SubModuleTestMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SubModuleTestMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SubModuleTestMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetSubmoduleID sets the "submodule_id" field.
+func (m *SubModuleTestMutation) SetSubmoduleID(i int) {
+	m._SubModule = &i
+}
+
+// SubmoduleID returns the value of the "submodule_id" field in the mutation.
+func (m *SubModuleTestMutation) SubmoduleID() (r int, exists bool) {
+	v := m._SubModule
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSubmoduleID returns the old "submodule_id" field's value of the SubModuleTest entity.
+// If the SubModuleTest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SubModuleTestMutation) OldSubmoduleID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldSubmoduleID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldSubmoduleID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSubmoduleID: %w", err)
+	}
+	return oldValue.SubmoduleID, nil
+}
+
+// ResetSubmoduleID resets all changes to the "submodule_id" field.
+func (m *SubModuleTestMutation) ResetSubmoduleID() {
+	m._SubModule = nil
+}
+
+// SetSubModuleID sets the "SubModule" edge to the SubModule entity by id.
+func (m *SubModuleTestMutation) SetSubModuleID(id int) {
+	m._SubModule = &id
+}
+
+// ClearSubModule clears the "SubModule" edge to the SubModule entity.
+func (m *SubModuleTestMutation) ClearSubModule() {
+	m.cleared_SubModule = true
+}
+
+// SubModuleCleared reports if the "SubModule" edge to the SubModule entity was cleared.
+func (m *SubModuleTestMutation) SubModuleCleared() bool {
+	return m.cleared_SubModule
+}
+
+// SubModuleID returns the "SubModule" edge ID in the mutation.
+func (m *SubModuleTestMutation) SubModuleID() (id int, exists bool) {
+	if m._SubModule != nil {
+		return *m._SubModule, true
+	}
+	return
+}
+
+// SubModuleIDs returns the "SubModule" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SubModuleID instead. It exists only for internal usage by the builders.
+func (m *SubModuleTestMutation) SubModuleIDs() (ids []int) {
+	if id := m._SubModule; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSubModule resets all changes to the "SubModule" edge.
+func (m *SubModuleTestMutation) ResetSubModule() {
+	m._SubModule = nil
+	m.cleared_SubModule = false
+}
+
+// SetTherTestID sets the "TherTest" edge to the TheoreticalTest entity by id.
+func (m *SubModuleTestMutation) SetTherTestID(id int) {
+	m._TherTest = &id
+}
+
+// ClearTherTest clears the "TherTest" edge to the TheoreticalTest entity.
+func (m *SubModuleTestMutation) ClearTherTest() {
+	m.cleared_TherTest = true
+}
+
+// TherTestCleared reports if the "TherTest" edge to the TheoreticalTest entity was cleared.
+func (m *SubModuleTestMutation) TherTestCleared() bool {
+	return m.cleared_TherTest
+}
+
+// TherTestID returns the "TherTest" edge ID in the mutation.
+func (m *SubModuleTestMutation) TherTestID() (id int, exists bool) {
+	if m._TherTest != nil {
+		return *m._TherTest, true
+	}
+	return
+}
+
+// TherTestIDs returns the "TherTest" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TherTestID instead. It exists only for internal usage by the builders.
+func (m *SubModuleTestMutation) TherTestIDs() (ids []int) {
+	if id := m._TherTest; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTherTest resets all changes to the "TherTest" edge.
+func (m *SubModuleTestMutation) ResetTherTest() {
+	m._TherTest = nil
+	m.cleared_TherTest = false
+}
+
+// Where appends a list predicates to the SubModuleTestMutation builder.
+func (m *SubModuleTestMutation) Where(ps ...predicate.SubModuleTest) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *SubModuleTestMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (SubModuleTest).
+func (m *SubModuleTestMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SubModuleTestMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m._SubModule != nil {
+		fields = append(fields, submoduletest.FieldSubmoduleID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SubModuleTestMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case submoduletest.FieldSubmoduleID:
+		return m.SubmoduleID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SubModuleTestMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case submoduletest.FieldSubmoduleID:
+		return m.OldSubmoduleID(ctx)
+	}
+	return nil, fmt.Errorf("unknown SubModuleTest field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SubModuleTestMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case submoduletest.FieldSubmoduleID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSubmoduleID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SubModuleTest field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SubModuleTestMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SubModuleTestMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SubModuleTestMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown SubModuleTest numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SubModuleTestMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SubModuleTestMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SubModuleTestMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown SubModuleTest nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SubModuleTestMutation) ResetField(name string) error {
+	switch name {
+	case submoduletest.FieldSubmoduleID:
+		m.ResetSubmoduleID()
+		return nil
+	}
+	return fmt.Errorf("unknown SubModuleTest field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SubModuleTestMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m._SubModule != nil {
+		edges = append(edges, submoduletest.EdgeSubModule)
+	}
+	if m._TherTest != nil {
+		edges = append(edges, submoduletest.EdgeTherTest)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SubModuleTestMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case submoduletest.EdgeSubModule:
+		if id := m._SubModule; id != nil {
+			return []ent.Value{*id}
+		}
+	case submoduletest.EdgeTherTest:
+		if id := m._TherTest; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SubModuleTestMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SubModuleTestMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SubModuleTestMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleared_SubModule {
+		edges = append(edges, submoduletest.EdgeSubModule)
+	}
+	if m.cleared_TherTest {
+		edges = append(edges, submoduletest.EdgeTherTest)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SubModuleTestMutation) EdgeCleared(name string) bool {
+	switch name {
+	case submoduletest.EdgeSubModule:
+		return m.cleared_SubModule
+	case submoduletest.EdgeTherTest:
+		return m.cleared_TherTest
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SubModuleTestMutation) ClearEdge(name string) error {
+	switch name {
+	case submoduletest.EdgeSubModule:
+		m.ClearSubModule()
+		return nil
+	case submoduletest.EdgeTherTest:
+		m.ClearTherTest()
+		return nil
+	}
+	return fmt.Errorf("unknown SubModuleTest unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SubModuleTestMutation) ResetEdge(name string) error {
+	switch name {
+	case submoduletest.EdgeSubModule:
+		m.ResetSubModule()
+		return nil
+	case submoduletest.EdgeTherTest:
+		m.ResetTherTest()
+		return nil
+	}
+	return fmt.Errorf("unknown SubModuleTest edge %s", name)
+}
+
+// TheoreticalTestMutation represents an operation that mutates the TheoreticalTest nodes in the graph.
+type TheoreticalTestMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *int
+	clearedFields         map[string]struct{}
+	_SubModuleTest        *int
+	cleared_SubModuleTest bool
+	_Question             map[int]struct{}
+	removed_Question      map[int]struct{}
+	cleared_Question      bool
+	done                  bool
+	oldValue              func(context.Context) (*TheoreticalTest, error)
+	predicates            []predicate.TheoreticalTest
+}
+
+var _ ent.Mutation = (*TheoreticalTestMutation)(nil)
+
+// theoreticaltestOption allows management of the mutation configuration using functional options.
+type theoreticaltestOption func(*TheoreticalTestMutation)
+
+// newTheoreticalTestMutation creates new mutation for the TheoreticalTest entity.
+func newTheoreticalTestMutation(c config, op Op, opts ...theoreticaltestOption) *TheoreticalTestMutation {
+	m := &TheoreticalTestMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTheoreticalTest,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTheoreticalTestID sets the ID field of the mutation.
+func withTheoreticalTestID(id int) theoreticaltestOption {
+	return func(m *TheoreticalTestMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *TheoreticalTest
+		)
+		m.oldValue = func(ctx context.Context) (*TheoreticalTest, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().TheoreticalTest.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTheoreticalTest sets the old TheoreticalTest of the mutation.
+func withTheoreticalTest(node *TheoreticalTest) theoreticaltestOption {
+	return func(m *TheoreticalTestMutation) {
+		m.oldValue = func(context.Context) (*TheoreticalTest, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TheoreticalTestMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TheoreticalTestMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TheoreticalTestMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetSubmoduletestID sets the "submoduletest_id" field.
+func (m *TheoreticalTestMutation) SetSubmoduletestID(i int) {
+	m._SubModuleTest = &i
+}
+
+// SubmoduletestID returns the value of the "submoduletest_id" field in the mutation.
+func (m *TheoreticalTestMutation) SubmoduletestID() (r int, exists bool) {
+	v := m._SubModuleTest
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSubmoduletestID returns the old "submoduletest_id" field's value of the TheoreticalTest entity.
+// If the TheoreticalTest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TheoreticalTestMutation) OldSubmoduletestID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldSubmoduletestID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldSubmoduletestID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSubmoduletestID: %w", err)
+	}
+	return oldValue.SubmoduletestID, nil
+}
+
+// ResetSubmoduletestID resets all changes to the "submoduletest_id" field.
+func (m *TheoreticalTestMutation) ResetSubmoduletestID() {
+	m._SubModuleTest = nil
+}
+
+// SetSubModuleTestID sets the "SubModuleTest" edge to the SubModuleTest entity by id.
+func (m *TheoreticalTestMutation) SetSubModuleTestID(id int) {
+	m._SubModuleTest = &id
+}
+
+// ClearSubModuleTest clears the "SubModuleTest" edge to the SubModuleTest entity.
+func (m *TheoreticalTestMutation) ClearSubModuleTest() {
+	m.cleared_SubModuleTest = true
+}
+
+// SubModuleTestCleared reports if the "SubModuleTest" edge to the SubModuleTest entity was cleared.
+func (m *TheoreticalTestMutation) SubModuleTestCleared() bool {
+	return m.cleared_SubModuleTest
+}
+
+// SubModuleTestID returns the "SubModuleTest" edge ID in the mutation.
+func (m *TheoreticalTestMutation) SubModuleTestID() (id int, exists bool) {
+	if m._SubModuleTest != nil {
+		return *m._SubModuleTest, true
+	}
+	return
+}
+
+// SubModuleTestIDs returns the "SubModuleTest" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SubModuleTestID instead. It exists only for internal usage by the builders.
+func (m *TheoreticalTestMutation) SubModuleTestIDs() (ids []int) {
+	if id := m._SubModuleTest; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSubModuleTest resets all changes to the "SubModuleTest" edge.
+func (m *TheoreticalTestMutation) ResetSubModuleTest() {
+	m._SubModuleTest = nil
+	m.cleared_SubModuleTest = false
+}
+
+// AddQuestionIDs adds the "Question" edge to the Question entity by ids.
+func (m *TheoreticalTestMutation) AddQuestionIDs(ids ...int) {
+	if m._Question == nil {
+		m._Question = make(map[int]struct{})
+	}
+	for i := range ids {
+		m._Question[ids[i]] = struct{}{}
+	}
+}
+
+// ClearQuestion clears the "Question" edge to the Question entity.
+func (m *TheoreticalTestMutation) ClearQuestion() {
+	m.cleared_Question = true
+}
+
+// QuestionCleared reports if the "Question" edge to the Question entity was cleared.
+func (m *TheoreticalTestMutation) QuestionCleared() bool {
+	return m.cleared_Question
+}
+
+// RemoveQuestionIDs removes the "Question" edge to the Question entity by IDs.
+func (m *TheoreticalTestMutation) RemoveQuestionIDs(ids ...int) {
+	if m.removed_Question == nil {
+		m.removed_Question = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m._Question, ids[i])
+		m.removed_Question[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedQuestion returns the removed IDs of the "Question" edge to the Question entity.
+func (m *TheoreticalTestMutation) RemovedQuestionIDs() (ids []int) {
+	for id := range m.removed_Question {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// QuestionIDs returns the "Question" edge IDs in the mutation.
+func (m *TheoreticalTestMutation) QuestionIDs() (ids []int) {
+	for id := range m._Question {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetQuestion resets all changes to the "Question" edge.
+func (m *TheoreticalTestMutation) ResetQuestion() {
+	m._Question = nil
+	m.cleared_Question = false
+	m.removed_Question = nil
+}
+
+// Where appends a list predicates to the TheoreticalTestMutation builder.
+func (m *TheoreticalTestMutation) Where(ps ...predicate.TheoreticalTest) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *TheoreticalTestMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (TheoreticalTest).
+func (m *TheoreticalTestMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TheoreticalTestMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m._SubModuleTest != nil {
+		fields = append(fields, theoreticaltest.FieldSubmoduletestID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TheoreticalTestMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case theoreticaltest.FieldSubmoduletestID:
+		return m.SubmoduletestID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TheoreticalTestMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case theoreticaltest.FieldSubmoduletestID:
+		return m.OldSubmoduletestID(ctx)
+	}
+	return nil, fmt.Errorf("unknown TheoreticalTest field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TheoreticalTestMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case theoreticaltest.FieldSubmoduletestID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSubmoduletestID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TheoreticalTest field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TheoreticalTestMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TheoreticalTestMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TheoreticalTestMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown TheoreticalTest numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TheoreticalTestMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TheoreticalTestMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TheoreticalTestMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown TheoreticalTest nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TheoreticalTestMutation) ResetField(name string) error {
+	switch name {
+	case theoreticaltest.FieldSubmoduletestID:
+		m.ResetSubmoduletestID()
+		return nil
+	}
+	return fmt.Errorf("unknown TheoreticalTest field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TheoreticalTestMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m._SubModuleTest != nil {
+		edges = append(edges, theoreticaltest.EdgeSubModuleTest)
+	}
+	if m._Question != nil {
+		edges = append(edges, theoreticaltest.EdgeQuestion)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TheoreticalTestMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case theoreticaltest.EdgeSubModuleTest:
+		if id := m._SubModuleTest; id != nil {
+			return []ent.Value{*id}
+		}
+	case theoreticaltest.EdgeQuestion:
+		ids := make([]ent.Value, 0, len(m._Question))
+		for id := range m._Question {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TheoreticalTestMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removed_Question != nil {
+		edges = append(edges, theoreticaltest.EdgeQuestion)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TheoreticalTestMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case theoreticaltest.EdgeQuestion:
+		ids := make([]ent.Value, 0, len(m.removed_Question))
+		for id := range m.removed_Question {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TheoreticalTestMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleared_SubModuleTest {
+		edges = append(edges, theoreticaltest.EdgeSubModuleTest)
+	}
+	if m.cleared_Question {
+		edges = append(edges, theoreticaltest.EdgeQuestion)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TheoreticalTestMutation) EdgeCleared(name string) bool {
+	switch name {
+	case theoreticaltest.EdgeSubModuleTest:
+		return m.cleared_SubModuleTest
+	case theoreticaltest.EdgeQuestion:
+		return m.cleared_Question
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TheoreticalTestMutation) ClearEdge(name string) error {
+	switch name {
+	case theoreticaltest.EdgeSubModuleTest:
+		m.ClearSubModuleTest()
+		return nil
+	}
+	return fmt.Errorf("unknown TheoreticalTest unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TheoreticalTestMutation) ResetEdge(name string) error {
+	switch name {
+	case theoreticaltest.EdgeSubModuleTest:
+		m.ResetSubModuleTest()
+		return nil
+	case theoreticaltest.EdgeQuestion:
+		m.ResetQuestion()
+		return nil
+	}
+	return fmt.Errorf("unknown TheoreticalTest edge %s", name)
 }
 
 // UserMutation represents an operation that mutates the User nodes in the graph.

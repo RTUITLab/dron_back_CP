@@ -19,11 +19,8 @@ func TestFunc_Init(t *testing.T) {
 		t.FailNow()
 	}
 
-	if _, err := client.Role.Create().SetRole("student").Save(context.Background()); err != nil {
+	_, err = client.Answer.Create().SetAnswer("asdas").SetCorrect(true).Save(context.Background())
+	if err != nil {
 		t.Log(err)
 	}
-
-	// 
-	// 
-
 }

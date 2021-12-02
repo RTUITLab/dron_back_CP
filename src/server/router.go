@@ -4,6 +4,7 @@ import (
 	"github.com/0B1t322/CP-Rosseti-Back/controllers/auth"
 	"github.com/0B1t322/CP-Rosseti-Back/controllers/role"
 	"github.com/0B1t322/CP-Rosseti-Back/controllers/user"
+	"github.com/0B1t322/CP-Rosseti-Back/controllers/module"
 	_ "github.com/0B1t322/CP-Rosseti-Back/docs"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"     // swagger embed files
@@ -14,6 +15,7 @@ type Controllers struct {
 	User	*user.UserController
 	Role	*role.RoleController
 	Auth	*auth.AuthController
+	Module	*module.ModuleController
 }
 
 func NewRouter(c *Controllers) *gin.Engine {
@@ -38,7 +40,49 @@ func NewRouter(c *Controllers) *gin.Engine {
 			auth.POST("/login", c.Auth.Login)
 			auth.POST("/refresh", c.Auth.Refresh)
 		}
+
+		module := v1.Group("/module")
+		{
+			module.POST("", c.Module.CreateModule)
+			module.POST("/:id/submodule", c.Module.AddSubModule)
+			module.POST("/submodule/:id/test", c.Module.AddSubModuleTest)
+		}
 	}
 
 	return router
 }
+
+/*
+{
+  "theoreticalTest": {
+    "questions": [
+      {
+        "answers": [
+          {
+            "answer": "a_1",
+            "correct": false
+          },
+          {
+            "answer": "a_2",
+            "correct": true
+          }
+        ],
+        "question": "q_1"
+      },
+      {
+        "answers": [
+          {
+            "answer": "a_1",
+            "correct": false
+          },
+          {
+            "answer": "a_2",
+            "correct": true
+          }
+        ],
+        "question": "q_2"
+      }
+    ]
+  }
+}
+*/

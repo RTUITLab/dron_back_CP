@@ -12,8 +12,22 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Answer is the client for interacting with the Answer builders.
+	Answer *AnswerClient
+	// Module is the client for interacting with the Module builders.
+	Module *ModuleClient
+	// ModuleDependcies is the client for interacting with the ModuleDependcies builders.
+	ModuleDependcies *ModuleDependciesClient
+	// Question is the client for interacting with the Question builders.
+	Question *QuestionClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
+	// SubModule is the client for interacting with the SubModule builders.
+	SubModule *SubModuleClient
+	// SubModuleTest is the client for interacting with the SubModuleTest builders.
+	SubModuleTest *SubModuleTestClient
+	// TheoreticalTest is the client for interacting with the TheoreticalTest builders.
+	TheoreticalTest *TheoreticalTestClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -151,7 +165,14 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Answer = NewAnswerClient(tx.config)
+	tx.Module = NewModuleClient(tx.config)
+	tx.ModuleDependcies = NewModuleDependciesClient(tx.config)
+	tx.Question = NewQuestionClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
+	tx.SubModule = NewSubModuleClient(tx.config)
+	tx.SubModuleTest = NewSubModuleTestClient(tx.config)
+	tx.TheoreticalTest = NewTheoreticalTestClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 
@@ -162,7 +183,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Role.QueryXXX(), the query will be executed
+// applies a query, for example: Answer.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

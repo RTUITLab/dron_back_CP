@@ -9,6 +9,84 @@ import (
 )
 
 var (
+	// AnswersColumns holds the columns for the "answers" table.
+	AnswersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "answer", Type: field.TypeString, Size: 2147483647},
+		{Name: "correct", Type: field.TypeBool},
+		{Name: "question_id", Type: field.TypeInt, Nullable: true},
+	}
+	// AnswersTable holds the schema information for the "answers" table.
+	AnswersTable = &schema.Table{
+		Name:       "answers",
+		Columns:    AnswersColumns,
+		PrimaryKey: []*schema.Column{AnswersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "answers_Question_Answer",
+				Columns:    []*schema.Column{AnswersColumns[3]},
+				RefColumns: []*schema.Column{QuestionColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// ModuleColumns holds the columns for the "Module" table.
+	ModuleColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+	}
+	// ModuleTable holds the schema information for the "Module" table.
+	ModuleTable = &schema.Table{
+		Name:       "Module",
+		Columns:    ModuleColumns,
+		PrimaryKey: []*schema.Column{ModuleColumns[0]},
+	}
+	// ModuleDependciesColumns holds the columns for the "ModuleDependcies" table.
+	ModuleDependciesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "dependent_id", Type: field.TypeInt, Nullable: true},
+		{Name: "dependent_on_id", Type: field.TypeInt, Nullable: true},
+	}
+	// ModuleDependciesTable holds the schema information for the "ModuleDependcies" table.
+	ModuleDependciesTable = &schema.Table{
+		Name:       "ModuleDependcies",
+		Columns:    ModuleDependciesColumns,
+		PrimaryKey: []*schema.Column{ModuleDependciesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ModuleDependcies_Module_ModuleDependcies",
+				Columns:    []*schema.Column{ModuleDependciesColumns[1]},
+				RefColumns: []*schema.Column{ModuleColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "ModuleDependcies_Module_ModuleDependOn",
+				Columns:    []*schema.Column{ModuleDependciesColumns[2]},
+				RefColumns: []*schema.Column{ModuleColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// QuestionColumns holds the columns for the "Question" table.
+	QuestionColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "question", Type: field.TypeString, Size: 2147483647},
+		{Name: "theorical_test_id", Type: field.TypeInt, Nullable: true},
+	}
+	// QuestionTable holds the schema information for the "Question" table.
+	QuestionTable = &schema.Table{
+		Name:       "Question",
+		Columns:    QuestionColumns,
+		PrimaryKey: []*schema.Column{QuestionColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "Question_TheoreticalTest_Question",
+				Columns:    []*schema.Column{QuestionColumns[2]},
+				RefColumns: []*schema.Column{TheoreticalTestColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// RoleColumns holds the columns for the "Role" table.
 	RoleColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -19,6 +97,65 @@ var (
 		Name:       "Role",
 		Columns:    RoleColumns,
 		PrimaryKey: []*schema.Column{RoleColumns[0]},
+	}
+	// SubModuleColumns holds the columns for the "SubModule" table.
+	SubModuleColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "text", Type: field.TypeString, Size: 2147483647},
+		{Name: "module_sub_modules", Type: field.TypeInt, Nullable: true},
+	}
+	// SubModuleTable holds the schema information for the "SubModule" table.
+	SubModuleTable = &schema.Table{
+		Name:       "SubModule",
+		Columns:    SubModuleColumns,
+		PrimaryKey: []*schema.Column{SubModuleColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "SubModule_Module_SubModules",
+				Columns:    []*schema.Column{SubModuleColumns[3]},
+				RefColumns: []*schema.Column{ModuleColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// SubModuleTestColumns holds the columns for the "SubModuleTest" table.
+	SubModuleTestColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "submodule_id", Type: field.TypeInt, Unique: true, Nullable: true},
+	}
+	// SubModuleTestTable holds the schema information for the "SubModuleTest" table.
+	SubModuleTestTable = &schema.Table{
+		Name:       "SubModuleTest",
+		Columns:    SubModuleTestColumns,
+		PrimaryKey: []*schema.Column{SubModuleTestColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "SubModuleTest_SubModule_Test",
+				Columns:    []*schema.Column{SubModuleTestColumns[1]},
+				RefColumns: []*schema.Column{SubModuleColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// TheoreticalTestColumns holds the columns for the "TheoreticalTest" table.
+	TheoreticalTestColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "submoduletest_id", Type: field.TypeInt, Unique: true, Nullable: true},
+	}
+	// TheoreticalTestTable holds the schema information for the "TheoreticalTest" table.
+	TheoreticalTestTable = &schema.Table{
+		Name:       "TheoreticalTest",
+		Columns:    TheoreticalTestColumns,
+		PrimaryKey: []*schema.Column{TheoreticalTestColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "TheoreticalTest_SubModuleTest_TherTest",
+				Columns:    []*schema.Column{TheoreticalTestColumns[1]},
+				RefColumns: []*schema.Column{SubModuleTestColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// UserColumns holds the columns for the "User" table.
 	UserColumns = []*schema.Column{
@@ -43,14 +180,46 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AnswersTable,
+		ModuleTable,
+		ModuleDependciesTable,
+		QuestionTable,
 		RoleTable,
+		SubModuleTable,
+		SubModuleTestTable,
+		TheoreticalTestTable,
 		UserTable,
 	}
 )
 
 func init() {
+	AnswersTable.ForeignKeys[0].RefTable = QuestionTable
+	ModuleTable.Annotation = &entsql.Annotation{
+		Table: "Module",
+	}
+	ModuleDependciesTable.ForeignKeys[0].RefTable = ModuleTable
+	ModuleDependciesTable.ForeignKeys[1].RefTable = ModuleTable
+	ModuleDependciesTable.Annotation = &entsql.Annotation{
+		Table: "ModuleDependcies",
+	}
+	QuestionTable.ForeignKeys[0].RefTable = TheoreticalTestTable
+	QuestionTable.Annotation = &entsql.Annotation{
+		Table: "Question",
+	}
 	RoleTable.Annotation = &entsql.Annotation{
 		Table: "Role",
+	}
+	SubModuleTable.ForeignKeys[0].RefTable = ModuleTable
+	SubModuleTable.Annotation = &entsql.Annotation{
+		Table: "SubModule",
+	}
+	SubModuleTestTable.ForeignKeys[0].RefTable = SubModuleTable
+	SubModuleTestTable.Annotation = &entsql.Annotation{
+		Table: "SubModuleTest",
+	}
+	TheoreticalTestTable.ForeignKeys[0].RefTable = SubModuleTestTable
+	TheoreticalTestTable.Annotation = &entsql.Annotation{
+		Table: "TheoreticalTest",
 	}
 	UserTable.ForeignKeys[0].RefTable = RoleTable
 	UserTable.Annotation = &entsql.Annotation{

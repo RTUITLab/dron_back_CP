@@ -6,8 +6,29 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Answer is the predicate function for answer builders.
+type Answer func(*sql.Selector)
+
+// Module is the predicate function for module builders.
+type Module func(*sql.Selector)
+
+// ModuleDependcies is the predicate function for moduledependcies builders.
+type ModuleDependcies func(*sql.Selector)
+
+// Question is the predicate function for question builders.
+type Question func(*sql.Selector)
+
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)
+
+// SubModule is the predicate function for submodule builders.
+type SubModule func(*sql.Selector)
+
+// SubModuleTest is the predicate function for submoduletest builders.
+type SubModuleTest func(*sql.Selector)
+
+// TheoreticalTest is the predicate function for theoreticaltest builders.
+type TheoreticalTest func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

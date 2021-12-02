@@ -9,7 +9,14 @@ import (
 
 	"github.com/0B1t322/CP-Rosseti-Back/ent/migrate"
 
+	"github.com/0B1t322/CP-Rosseti-Back/ent/answer"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/module"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/moduledependcies"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/role"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/user"
 
 	"entgo.io/ent/dialect"
@@ -22,8 +29,22 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Answer is the client for interacting with the Answer builders.
+	Answer *AnswerClient
+	// Module is the client for interacting with the Module builders.
+	Module *ModuleClient
+	// ModuleDependcies is the client for interacting with the ModuleDependcies builders.
+	ModuleDependcies *ModuleDependciesClient
+	// Question is the client for interacting with the Question builders.
+	Question *QuestionClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
+	// SubModule is the client for interacting with the SubModule builders.
+	SubModule *SubModuleClient
+	// SubModuleTest is the client for interacting with the SubModuleTest builders.
+	SubModuleTest *SubModuleTestClient
+	// TheoreticalTest is the client for interacting with the TheoreticalTest builders.
+	TheoreticalTest *TheoreticalTestClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -39,7 +60,14 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Answer = NewAnswerClient(c.config)
+	c.Module = NewModuleClient(c.config)
+	c.ModuleDependcies = NewModuleDependciesClient(c.config)
+	c.Question = NewQuestionClient(c.config)
 	c.Role = NewRoleClient(c.config)
+	c.SubModule = NewSubModuleClient(c.config)
+	c.SubModuleTest = NewSubModuleTestClient(c.config)
+	c.TheoreticalTest = NewTheoreticalTestClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -72,10 +100,17 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Role:   NewRoleClient(cfg),
-		User:   NewUserClient(cfg),
+		ctx:              ctx,
+		config:           cfg,
+		Answer:           NewAnswerClient(cfg),
+		Module:           NewModuleClient(cfg),
+		ModuleDependcies: NewModuleDependciesClient(cfg),
+		Question:         NewQuestionClient(cfg),
+		Role:             NewRoleClient(cfg),
+		SubModule:        NewSubModuleClient(cfg),
+		SubModuleTest:    NewSubModuleTestClient(cfg),
+		TheoreticalTest:  NewTheoreticalTestClient(cfg),
+		User:             NewUserClient(cfg),
 	}, nil
 }
 
@@ -93,16 +128,23 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		config: cfg,
-		Role:   NewRoleClient(cfg),
-		User:   NewUserClient(cfg),
+		config:           cfg,
+		Answer:           NewAnswerClient(cfg),
+		Module:           NewModuleClient(cfg),
+		ModuleDependcies: NewModuleDependciesClient(cfg),
+		Question:         NewQuestionClient(cfg),
+		Role:             NewRoleClient(cfg),
+		SubModule:        NewSubModuleClient(cfg),
+		SubModuleTest:    NewSubModuleTestClient(cfg),
+		TheoreticalTest:  NewTheoreticalTestClient(cfg),
+		User:             NewUserClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Role.
+//		Answer.
 //		Query().
 //		Count(ctx)
 //
@@ -125,8 +167,503 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.Answer.Use(hooks...)
+	c.Module.Use(hooks...)
+	c.ModuleDependcies.Use(hooks...)
+	c.Question.Use(hooks...)
 	c.Role.Use(hooks...)
+	c.SubModule.Use(hooks...)
+	c.SubModuleTest.Use(hooks...)
+	c.TheoreticalTest.Use(hooks...)
 	c.User.Use(hooks...)
+}
+
+// AnswerClient is a client for the Answer schema.
+type AnswerClient struct {
+	config
+}
+
+// NewAnswerClient returns a client for the Answer from the given config.
+func NewAnswerClient(c config) *AnswerClient {
+	return &AnswerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `answer.Hooks(f(g(h())))`.
+func (c *AnswerClient) Use(hooks ...Hook) {
+	c.hooks.Answer = append(c.hooks.Answer, hooks...)
+}
+
+// Create returns a create builder for Answer.
+func (c *AnswerClient) Create() *AnswerCreate {
+	mutation := newAnswerMutation(c.config, OpCreate)
+	return &AnswerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Answer entities.
+func (c *AnswerClient) CreateBulk(builders ...*AnswerCreate) *AnswerCreateBulk {
+	return &AnswerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Answer.
+func (c *AnswerClient) Update() *AnswerUpdate {
+	mutation := newAnswerMutation(c.config, OpUpdate)
+	return &AnswerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AnswerClient) UpdateOne(a *Answer) *AnswerUpdateOne {
+	mutation := newAnswerMutation(c.config, OpUpdateOne, withAnswer(a))
+	return &AnswerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AnswerClient) UpdateOneID(id int) *AnswerUpdateOne {
+	mutation := newAnswerMutation(c.config, OpUpdateOne, withAnswerID(id))
+	return &AnswerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Answer.
+func (c *AnswerClient) Delete() *AnswerDelete {
+	mutation := newAnswerMutation(c.config, OpDelete)
+	return &AnswerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *AnswerClient) DeleteOne(a *Answer) *AnswerDeleteOne {
+	return c.DeleteOneID(a.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *AnswerClient) DeleteOneID(id int) *AnswerDeleteOne {
+	builder := c.Delete().Where(answer.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AnswerDeleteOne{builder}
+}
+
+// Query returns a query builder for Answer.
+func (c *AnswerClient) Query() *AnswerQuery {
+	return &AnswerQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Answer entity by its id.
+func (c *AnswerClient) Get(ctx context.Context, id int) (*Answer, error) {
+	return c.Query().Where(answer.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AnswerClient) GetX(ctx context.Context, id int) *Answer {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryQuestuion queries the Questuion edge of a Answer.
+func (c *AnswerClient) QueryQuestuion(a *Answer) *QuestionQuery {
+	query := &QuestionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(answer.Table, answer.FieldID, id),
+			sqlgraph.To(question.Table, question.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, answer.QuestuionTable, answer.QuestuionColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AnswerClient) Hooks() []Hook {
+	return c.hooks.Answer
+}
+
+// ModuleClient is a client for the Module schema.
+type ModuleClient struct {
+	config
+}
+
+// NewModuleClient returns a client for the Module from the given config.
+func NewModuleClient(c config) *ModuleClient {
+	return &ModuleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `module.Hooks(f(g(h())))`.
+func (c *ModuleClient) Use(hooks ...Hook) {
+	c.hooks.Module = append(c.hooks.Module, hooks...)
+}
+
+// Create returns a create builder for Module.
+func (c *ModuleClient) Create() *ModuleCreate {
+	mutation := newModuleMutation(c.config, OpCreate)
+	return &ModuleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Module entities.
+func (c *ModuleClient) CreateBulk(builders ...*ModuleCreate) *ModuleCreateBulk {
+	return &ModuleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Module.
+func (c *ModuleClient) Update() *ModuleUpdate {
+	mutation := newModuleMutation(c.config, OpUpdate)
+	return &ModuleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ModuleClient) UpdateOne(m *Module) *ModuleUpdateOne {
+	mutation := newModuleMutation(c.config, OpUpdateOne, withModule(m))
+	return &ModuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ModuleClient) UpdateOneID(id int) *ModuleUpdateOne {
+	mutation := newModuleMutation(c.config, OpUpdateOne, withModuleID(id))
+	return &ModuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Module.
+func (c *ModuleClient) Delete() *ModuleDelete {
+	mutation := newModuleMutation(c.config, OpDelete)
+	return &ModuleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *ModuleClient) DeleteOne(m *Module) *ModuleDeleteOne {
+	return c.DeleteOneID(m.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *ModuleClient) DeleteOneID(id int) *ModuleDeleteOne {
+	builder := c.Delete().Where(module.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ModuleDeleteOne{builder}
+}
+
+// Query returns a query builder for Module.
+func (c *ModuleClient) Query() *ModuleQuery {
+	return &ModuleQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Module entity by its id.
+func (c *ModuleClient) Get(ctx context.Context, id int) (*Module, error) {
+	return c.Query().Where(module.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ModuleClient) GetX(ctx context.Context, id int) *Module {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryModuleDependcies queries the ModuleDependcies edge of a Module.
+func (c *ModuleClient) QueryModuleDependcies(m *Module) *ModuleDependciesQuery {
+	query := &ModuleDependciesQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(module.Table, module.FieldID, id),
+			sqlgraph.To(moduledependcies.Table, moduledependcies.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, module.ModuleDependciesTable, module.ModuleDependciesColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryModuleDependOn queries the ModuleDependOn edge of a Module.
+func (c *ModuleClient) QueryModuleDependOn(m *Module) *ModuleDependciesQuery {
+	query := &ModuleDependciesQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(module.Table, module.FieldID, id),
+			sqlgraph.To(moduledependcies.Table, moduledependcies.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, module.ModuleDependOnTable, module.ModuleDependOnColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySubModules queries the SubModules edge of a Module.
+func (c *ModuleClient) QuerySubModules(m *Module) *SubModuleQuery {
+	query := &SubModuleQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(module.Table, module.FieldID, id),
+			sqlgraph.To(submodule.Table, submodule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, module.SubModulesTable, module.SubModulesColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ModuleClient) Hooks() []Hook {
+	return c.hooks.Module
+}
+
+// ModuleDependciesClient is a client for the ModuleDependcies schema.
+type ModuleDependciesClient struct {
+	config
+}
+
+// NewModuleDependciesClient returns a client for the ModuleDependcies from the given config.
+func NewModuleDependciesClient(c config) *ModuleDependciesClient {
+	return &ModuleDependciesClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `moduledependcies.Hooks(f(g(h())))`.
+func (c *ModuleDependciesClient) Use(hooks ...Hook) {
+	c.hooks.ModuleDependcies = append(c.hooks.ModuleDependcies, hooks...)
+}
+
+// Create returns a create builder for ModuleDependcies.
+func (c *ModuleDependciesClient) Create() *ModuleDependciesCreate {
+	mutation := newModuleDependciesMutation(c.config, OpCreate)
+	return &ModuleDependciesCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ModuleDependcies entities.
+func (c *ModuleDependciesClient) CreateBulk(builders ...*ModuleDependciesCreate) *ModuleDependciesCreateBulk {
+	return &ModuleDependciesCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ModuleDependcies.
+func (c *ModuleDependciesClient) Update() *ModuleDependciesUpdate {
+	mutation := newModuleDependciesMutation(c.config, OpUpdate)
+	return &ModuleDependciesUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ModuleDependciesClient) UpdateOne(md *ModuleDependcies) *ModuleDependciesUpdateOne {
+	mutation := newModuleDependciesMutation(c.config, OpUpdateOne, withModuleDependcies(md))
+	return &ModuleDependciesUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ModuleDependciesClient) UpdateOneID(id int) *ModuleDependciesUpdateOne {
+	mutation := newModuleDependciesMutation(c.config, OpUpdateOne, withModuleDependciesID(id))
+	return &ModuleDependciesUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ModuleDependcies.
+func (c *ModuleDependciesClient) Delete() *ModuleDependciesDelete {
+	mutation := newModuleDependciesMutation(c.config, OpDelete)
+	return &ModuleDependciesDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *ModuleDependciesClient) DeleteOne(md *ModuleDependcies) *ModuleDependciesDeleteOne {
+	return c.DeleteOneID(md.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *ModuleDependciesClient) DeleteOneID(id int) *ModuleDependciesDeleteOne {
+	builder := c.Delete().Where(moduledependcies.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ModuleDependciesDeleteOne{builder}
+}
+
+// Query returns a query builder for ModuleDependcies.
+func (c *ModuleDependciesClient) Query() *ModuleDependciesQuery {
+	return &ModuleDependciesQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a ModuleDependcies entity by its id.
+func (c *ModuleDependciesClient) Get(ctx context.Context, id int) (*ModuleDependcies, error) {
+	return c.Query().Where(moduledependcies.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ModuleDependciesClient) GetX(ctx context.Context, id int) *ModuleDependcies {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryModuleDependcies queries the ModuleDependcies edge of a ModuleDependcies.
+func (c *ModuleDependciesClient) QueryModuleDependcies(md *ModuleDependcies) *ModuleQuery {
+	query := &ModuleQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := md.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(moduledependcies.Table, moduledependcies.FieldID, id),
+			sqlgraph.To(module.Table, module.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, moduledependcies.ModuleDependciesTable, moduledependcies.ModuleDependciesColumn),
+		)
+		fromV = sqlgraph.Neighbors(md.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryModuleDependOn queries the ModuleDependOn edge of a ModuleDependcies.
+func (c *ModuleDependciesClient) QueryModuleDependOn(md *ModuleDependcies) *ModuleQuery {
+	query := &ModuleQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := md.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(moduledependcies.Table, moduledependcies.FieldID, id),
+			sqlgraph.To(module.Table, module.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, moduledependcies.ModuleDependOnTable, moduledependcies.ModuleDependOnColumn),
+		)
+		fromV = sqlgraph.Neighbors(md.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ModuleDependciesClient) Hooks() []Hook {
+	return c.hooks.ModuleDependcies
+}
+
+// QuestionClient is a client for the Question schema.
+type QuestionClient struct {
+	config
+}
+
+// NewQuestionClient returns a client for the Question from the given config.
+func NewQuestionClient(c config) *QuestionClient {
+	return &QuestionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `question.Hooks(f(g(h())))`.
+func (c *QuestionClient) Use(hooks ...Hook) {
+	c.hooks.Question = append(c.hooks.Question, hooks...)
+}
+
+// Create returns a create builder for Question.
+func (c *QuestionClient) Create() *QuestionCreate {
+	mutation := newQuestionMutation(c.config, OpCreate)
+	return &QuestionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Question entities.
+func (c *QuestionClient) CreateBulk(builders ...*QuestionCreate) *QuestionCreateBulk {
+	return &QuestionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Question.
+func (c *QuestionClient) Update() *QuestionUpdate {
+	mutation := newQuestionMutation(c.config, OpUpdate)
+	return &QuestionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *QuestionClient) UpdateOne(q *Question) *QuestionUpdateOne {
+	mutation := newQuestionMutation(c.config, OpUpdateOne, withQuestion(q))
+	return &QuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *QuestionClient) UpdateOneID(id int) *QuestionUpdateOne {
+	mutation := newQuestionMutation(c.config, OpUpdateOne, withQuestionID(id))
+	return &QuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Question.
+func (c *QuestionClient) Delete() *QuestionDelete {
+	mutation := newQuestionMutation(c.config, OpDelete)
+	return &QuestionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *QuestionClient) DeleteOne(q *Question) *QuestionDeleteOne {
+	return c.DeleteOneID(q.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *QuestionClient) DeleteOneID(id int) *QuestionDeleteOne {
+	builder := c.Delete().Where(question.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &QuestionDeleteOne{builder}
+}
+
+// Query returns a query builder for Question.
+func (c *QuestionClient) Query() *QuestionQuery {
+	return &QuestionQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Question entity by its id.
+func (c *QuestionClient) Get(ctx context.Context, id int) (*Question, error) {
+	return c.Query().Where(question.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *QuestionClient) GetX(ctx context.Context, id int) *Question {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTheoreticalTest queries the TheoreticalTest edge of a Question.
+func (c *QuestionClient) QueryTheoreticalTest(q *Question) *TheoreticalTestQuery {
+	query := &TheoreticalTestQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := q.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(question.Table, question.FieldID, id),
+			sqlgraph.To(theoreticaltest.Table, theoreticaltest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, question.TheoreticalTestTable, question.TheoreticalTestColumn),
+		)
+		fromV = sqlgraph.Neighbors(q.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAnswer queries the Answer edge of a Question.
+func (c *QuestionClient) QueryAnswer(q *Question) *AnswerQuery {
+	query := &AnswerQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := q.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(question.Table, question.FieldID, id),
+			sqlgraph.To(answer.Table, answer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, question.AnswerTable, question.AnswerColumn),
+		)
+		fromV = sqlgraph.Neighbors(q.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *QuestionClient) Hooks() []Hook {
+	return c.hooks.Question
 }
 
 // RoleClient is a client for the Role schema.
@@ -233,6 +770,372 @@ func (c *RoleClient) QueryUser(r *Role) *UserQuery {
 // Hooks returns the client hooks.
 func (c *RoleClient) Hooks() []Hook {
 	return c.hooks.Role
+}
+
+// SubModuleClient is a client for the SubModule schema.
+type SubModuleClient struct {
+	config
+}
+
+// NewSubModuleClient returns a client for the SubModule from the given config.
+func NewSubModuleClient(c config) *SubModuleClient {
+	return &SubModuleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `submodule.Hooks(f(g(h())))`.
+func (c *SubModuleClient) Use(hooks ...Hook) {
+	c.hooks.SubModule = append(c.hooks.SubModule, hooks...)
+}
+
+// Create returns a create builder for SubModule.
+func (c *SubModuleClient) Create() *SubModuleCreate {
+	mutation := newSubModuleMutation(c.config, OpCreate)
+	return &SubModuleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SubModule entities.
+func (c *SubModuleClient) CreateBulk(builders ...*SubModuleCreate) *SubModuleCreateBulk {
+	return &SubModuleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SubModule.
+func (c *SubModuleClient) Update() *SubModuleUpdate {
+	mutation := newSubModuleMutation(c.config, OpUpdate)
+	return &SubModuleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SubModuleClient) UpdateOne(sm *SubModule) *SubModuleUpdateOne {
+	mutation := newSubModuleMutation(c.config, OpUpdateOne, withSubModule(sm))
+	return &SubModuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SubModuleClient) UpdateOneID(id int) *SubModuleUpdateOne {
+	mutation := newSubModuleMutation(c.config, OpUpdateOne, withSubModuleID(id))
+	return &SubModuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SubModule.
+func (c *SubModuleClient) Delete() *SubModuleDelete {
+	mutation := newSubModuleMutation(c.config, OpDelete)
+	return &SubModuleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *SubModuleClient) DeleteOne(sm *SubModule) *SubModuleDeleteOne {
+	return c.DeleteOneID(sm.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *SubModuleClient) DeleteOneID(id int) *SubModuleDeleteOne {
+	builder := c.Delete().Where(submodule.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SubModuleDeleteOne{builder}
+}
+
+// Query returns a query builder for SubModule.
+func (c *SubModuleClient) Query() *SubModuleQuery {
+	return &SubModuleQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a SubModule entity by its id.
+func (c *SubModuleClient) Get(ctx context.Context, id int) (*SubModule, error) {
+	return c.Query().Where(submodule.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SubModuleClient) GetX(ctx context.Context, id int) *SubModule {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryModule queries the Module edge of a SubModule.
+func (c *SubModuleClient) QueryModule(sm *SubModule) *ModuleQuery {
+	query := &ModuleQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := sm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(submodule.Table, submodule.FieldID, id),
+			sqlgraph.To(module.Table, module.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, submodule.ModuleTable, submodule.ModuleColumn),
+		)
+		fromV = sqlgraph.Neighbors(sm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTest queries the Test edge of a SubModule.
+func (c *SubModuleClient) QueryTest(sm *SubModule) *SubModuleTestQuery {
+	query := &SubModuleTestQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := sm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(submodule.Table, submodule.FieldID, id),
+			sqlgraph.To(submoduletest.Table, submoduletest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, submodule.TestTable, submodule.TestColumn),
+		)
+		fromV = sqlgraph.Neighbors(sm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SubModuleClient) Hooks() []Hook {
+	return c.hooks.SubModule
+}
+
+// SubModuleTestClient is a client for the SubModuleTest schema.
+type SubModuleTestClient struct {
+	config
+}
+
+// NewSubModuleTestClient returns a client for the SubModuleTest from the given config.
+func NewSubModuleTestClient(c config) *SubModuleTestClient {
+	return &SubModuleTestClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `submoduletest.Hooks(f(g(h())))`.
+func (c *SubModuleTestClient) Use(hooks ...Hook) {
+	c.hooks.SubModuleTest = append(c.hooks.SubModuleTest, hooks...)
+}
+
+// Create returns a create builder for SubModuleTest.
+func (c *SubModuleTestClient) Create() *SubModuleTestCreate {
+	mutation := newSubModuleTestMutation(c.config, OpCreate)
+	return &SubModuleTestCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SubModuleTest entities.
+func (c *SubModuleTestClient) CreateBulk(builders ...*SubModuleTestCreate) *SubModuleTestCreateBulk {
+	return &SubModuleTestCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SubModuleTest.
+func (c *SubModuleTestClient) Update() *SubModuleTestUpdate {
+	mutation := newSubModuleTestMutation(c.config, OpUpdate)
+	return &SubModuleTestUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SubModuleTestClient) UpdateOne(smt *SubModuleTest) *SubModuleTestUpdateOne {
+	mutation := newSubModuleTestMutation(c.config, OpUpdateOne, withSubModuleTest(smt))
+	return &SubModuleTestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SubModuleTestClient) UpdateOneID(id int) *SubModuleTestUpdateOne {
+	mutation := newSubModuleTestMutation(c.config, OpUpdateOne, withSubModuleTestID(id))
+	return &SubModuleTestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SubModuleTest.
+func (c *SubModuleTestClient) Delete() *SubModuleTestDelete {
+	mutation := newSubModuleTestMutation(c.config, OpDelete)
+	return &SubModuleTestDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *SubModuleTestClient) DeleteOne(smt *SubModuleTest) *SubModuleTestDeleteOne {
+	return c.DeleteOneID(smt.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *SubModuleTestClient) DeleteOneID(id int) *SubModuleTestDeleteOne {
+	builder := c.Delete().Where(submoduletest.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SubModuleTestDeleteOne{builder}
+}
+
+// Query returns a query builder for SubModuleTest.
+func (c *SubModuleTestClient) Query() *SubModuleTestQuery {
+	return &SubModuleTestQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a SubModuleTest entity by its id.
+func (c *SubModuleTestClient) Get(ctx context.Context, id int) (*SubModuleTest, error) {
+	return c.Query().Where(submoduletest.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SubModuleTestClient) GetX(ctx context.Context, id int) *SubModuleTest {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySubModule queries the SubModule edge of a SubModuleTest.
+func (c *SubModuleTestClient) QuerySubModule(smt *SubModuleTest) *SubModuleQuery {
+	query := &SubModuleQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := smt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(submoduletest.Table, submoduletest.FieldID, id),
+			sqlgraph.To(submodule.Table, submodule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, submoduletest.SubModuleTable, submoduletest.SubModuleColumn),
+		)
+		fromV = sqlgraph.Neighbors(smt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTherTest queries the TherTest edge of a SubModuleTest.
+func (c *SubModuleTestClient) QueryTherTest(smt *SubModuleTest) *TheoreticalTestQuery {
+	query := &TheoreticalTestQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := smt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(submoduletest.Table, submoduletest.FieldID, id),
+			sqlgraph.To(theoreticaltest.Table, theoreticaltest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, submoduletest.TherTestTable, submoduletest.TherTestColumn),
+		)
+		fromV = sqlgraph.Neighbors(smt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SubModuleTestClient) Hooks() []Hook {
+	return c.hooks.SubModuleTest
+}
+
+// TheoreticalTestClient is a client for the TheoreticalTest schema.
+type TheoreticalTestClient struct {
+	config
+}
+
+// NewTheoreticalTestClient returns a client for the TheoreticalTest from the given config.
+func NewTheoreticalTestClient(c config) *TheoreticalTestClient {
+	return &TheoreticalTestClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `theoreticaltest.Hooks(f(g(h())))`.
+func (c *TheoreticalTestClient) Use(hooks ...Hook) {
+	c.hooks.TheoreticalTest = append(c.hooks.TheoreticalTest, hooks...)
+}
+
+// Create returns a create builder for TheoreticalTest.
+func (c *TheoreticalTestClient) Create() *TheoreticalTestCreate {
+	mutation := newTheoreticalTestMutation(c.config, OpCreate)
+	return &TheoreticalTestCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TheoreticalTest entities.
+func (c *TheoreticalTestClient) CreateBulk(builders ...*TheoreticalTestCreate) *TheoreticalTestCreateBulk {
+	return &TheoreticalTestCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TheoreticalTest.
+func (c *TheoreticalTestClient) Update() *TheoreticalTestUpdate {
+	mutation := newTheoreticalTestMutation(c.config, OpUpdate)
+	return &TheoreticalTestUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TheoreticalTestClient) UpdateOne(tt *TheoreticalTest) *TheoreticalTestUpdateOne {
+	mutation := newTheoreticalTestMutation(c.config, OpUpdateOne, withTheoreticalTest(tt))
+	return &TheoreticalTestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TheoreticalTestClient) UpdateOneID(id int) *TheoreticalTestUpdateOne {
+	mutation := newTheoreticalTestMutation(c.config, OpUpdateOne, withTheoreticalTestID(id))
+	return &TheoreticalTestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TheoreticalTest.
+func (c *TheoreticalTestClient) Delete() *TheoreticalTestDelete {
+	mutation := newTheoreticalTestMutation(c.config, OpDelete)
+	return &TheoreticalTestDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *TheoreticalTestClient) DeleteOne(tt *TheoreticalTest) *TheoreticalTestDeleteOne {
+	return c.DeleteOneID(tt.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *TheoreticalTestClient) DeleteOneID(id int) *TheoreticalTestDeleteOne {
+	builder := c.Delete().Where(theoreticaltest.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TheoreticalTestDeleteOne{builder}
+}
+
+// Query returns a query builder for TheoreticalTest.
+func (c *TheoreticalTestClient) Query() *TheoreticalTestQuery {
+	return &TheoreticalTestQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a TheoreticalTest entity by its id.
+func (c *TheoreticalTestClient) Get(ctx context.Context, id int) (*TheoreticalTest, error) {
+	return c.Query().Where(theoreticaltest.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TheoreticalTestClient) GetX(ctx context.Context, id int) *TheoreticalTest {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySubModuleTest queries the SubModuleTest edge of a TheoreticalTest.
+func (c *TheoreticalTestClient) QuerySubModuleTest(tt *TheoreticalTest) *SubModuleTestQuery {
+	query := &SubModuleTestQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := tt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(theoreticaltest.Table, theoreticaltest.FieldID, id),
+			sqlgraph.To(submoduletest.Table, submoduletest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, theoreticaltest.SubModuleTestTable, theoreticaltest.SubModuleTestColumn),
+		)
+		fromV = sqlgraph.Neighbors(tt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryQuestion queries the Question edge of a TheoreticalTest.
+func (c *TheoreticalTestClient) QueryQuestion(tt *TheoreticalTest) *QuestionQuery {
+	query := &QuestionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := tt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(theoreticaltest.Table, theoreticaltest.FieldID, id),
+			sqlgraph.To(question.Table, question.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, theoreticaltest.QuestionTable, theoreticaltest.QuestionColumn),
+		)
+		fromV = sqlgraph.Neighbors(tt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TheoreticalTestClient) Hooks() []Hook {
+	return c.hooks.TheoreticalTest
 }
 
 // UserClient is a client for the User schema.

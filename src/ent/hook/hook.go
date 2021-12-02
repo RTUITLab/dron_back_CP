@@ -9,6 +9,58 @@ import (
 	"github.com/0B1t322/CP-Rosseti-Back/ent"
 )
 
+// The AnswerFunc type is an adapter to allow the use of ordinary
+// function as Answer mutator.
+type AnswerFunc func(context.Context, *ent.AnswerMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AnswerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.AnswerMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AnswerMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The ModuleFunc type is an adapter to allow the use of ordinary
+// function as Module mutator.
+type ModuleFunc func(context.Context, *ent.ModuleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ModuleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.ModuleMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ModuleMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The ModuleDependciesFunc type is an adapter to allow the use of ordinary
+// function as ModuleDependcies mutator.
+type ModuleDependciesFunc func(context.Context, *ent.ModuleDependciesMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ModuleDependciesFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.ModuleDependciesMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ModuleDependciesMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The QuestionFunc type is an adapter to allow the use of ordinary
+// function as Question mutator.
+type QuestionFunc func(context.Context, *ent.QuestionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuestionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.QuestionMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuestionMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The RoleFunc type is an adapter to allow the use of ordinary
 // function as Role mutator.
 type RoleFunc func(context.Context, *ent.RoleMutation) (ent.Value, error)
@@ -18,6 +70,45 @@ func (f RoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	mv, ok := m.(*ent.RoleMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The SubModuleFunc type is an adapter to allow the use of ordinary
+// function as SubModule mutator.
+type SubModuleFunc func(context.Context, *ent.SubModuleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SubModuleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.SubModuleMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SubModuleMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The SubModuleTestFunc type is an adapter to allow the use of ordinary
+// function as SubModuleTest mutator.
+type SubModuleTestFunc func(context.Context, *ent.SubModuleTestMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SubModuleTestFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.SubModuleTestMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SubModuleTestMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The TheoreticalTestFunc type is an adapter to allow the use of ordinary
+// function as TheoreticalTest mutator.
+type TheoreticalTestFunc func(context.Context, *ent.TheoreticalTestMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TheoreticalTestFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.TheoreticalTestMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TheoreticalTestMutation", m)
 	}
 	return f(ctx, mv)
 }
