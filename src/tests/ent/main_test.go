@@ -18,9 +18,4 @@ func TestFunc_Init(t *testing.T) {
 		t.Log(err)
 		t.FailNow()
 	}
-
-	_, err = client.Answer.Create().SetAnswer("asdas").SetCorrect(true).Save(context.Background())
-	if err != nil {
-		t.Log(err)
-	}
 }

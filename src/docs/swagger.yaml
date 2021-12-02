@@ -33,6 +33,20 @@ definitions:
       id:
         type: integer
     type: object
+  module.AddPractTestReq:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+    type: object
+  module.AddPractTestResp:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+      id:
+        type: integer
+    type: object
   module.AddQuestionResp:
     properties:
       answers:
@@ -64,6 +78,8 @@ definitions:
     type: object
   module.AddSubModuleTestReq:
     properties:
+      practTest:
+        $ref: '#/definitions/module.CreatePractTestReq'
       theoreticalTest:
         $ref: '#/definitions/module.CreateTheoreticalTestReq'
     type: object
@@ -71,8 +87,24 @@ definitions:
     properties:
       id:
         type: integer
+      practTest:
+        $ref: '#/definitions/module.AddPractTestResp'
       theoreticalTest:
         $ref: '#/definitions/module.AddTheoreticalTestResp'
+    type: object
+  module.AddTheorTestReq:
+    properties:
+      questions:
+        items:
+          $ref: '#/definitions/module.CreateQuestionReq'
+        type: array
+    type: object
+  module.AddTheorTestResp:
+    properties:
+      questions:
+        items:
+          $ref: '#/definitions/module.AddQuestionResp'
+        type: array
     type: object
   module.AddTheoreticalTestResp:
     properties:
@@ -100,6 +132,12 @@ definitions:
       name:
         type: string
     type: object
+  module.CreatePractTestReq:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+    type: object
   module.CreateQuestionReq:
     properties:
       answers:
@@ -110,6 +148,19 @@ definitions:
         type: string
     type: object
   module.CreateTheoreticalTestReq:
+    properties:
+      questions:
+        items:
+          $ref: '#/definitions/module.CreateQuestionReq'
+        type: array
+    type: object
+  module.UpdateConfigReq:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+    type: object
+  module.UpdateTheorTestReq:
     properties:
       questions:
         items:
@@ -358,6 +409,190 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: add submodule test
+      tags:
+      - module
+  /v1/module/submodule/{id}/test/pract:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        add Pract test to submodule test
+        that can do only admin
+      parameters:
+      - description: Pract test info
+        in: body
+        name: theotest
+        required: true
+        schema:
+          $ref: '#/definitions/module.AddPractTestReq'
+      - description: id of submodule
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/module.AddPractTestResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: add Pract test
+      tags:
+      - module
+    put:
+      consumes:
+      - application/json
+      description: |-
+        update Pract test to submodule test
+        that can do only admin
+      parameters:
+      - description: Pract test info
+        in: body
+        name: theotest
+        required: true
+        schema:
+          $ref: '#/definitions/module.UpdateConfigReq'
+      - description: id of submodule
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/module.AddPractTestResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: update Pract test
+      tags:
+      - module
+  /v1/module/submodule/{id}/test/theor:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        add theor test to submodule test
+        that can do only admin
+      parameters:
+      - description: Theor test info
+        in: body
+        name: theotest
+        required: true
+        schema:
+          $ref: '#/definitions/module.AddTheorTestReq'
+      - description: id of submodule
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/module.AddTheorTestResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: add theor test
+      tags:
+      - module
+    put:
+      consumes:
+      - application/json
+      description: add questions to Theor test
+      parameters:
+      - description: Theor test info
+        in: body
+        name: theortest
+        required: true
+        schema:
+          $ref: '#/definitions/module.UpdateTheorTestReq'
+      - description: id of submodule
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/module.AddTheorTestResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: add questions to Theor test
       tags:
       - module
   /v1/user:

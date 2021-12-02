@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/predicate"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
@@ -65,6 +66,25 @@ func (smtu *SubModuleTestUpdate) SetTherTest(t *TheoreticalTest) *SubModuleTestU
 	return smtu.SetTherTestID(t.ID)
 }
 
+// SetPractTestID sets the "PractTest" edge to the PractTest entity by ID.
+func (smtu *SubModuleTestUpdate) SetPractTestID(id int) *SubModuleTestUpdate {
+	smtu.mutation.SetPractTestID(id)
+	return smtu
+}
+
+// SetNillablePractTestID sets the "PractTest" edge to the PractTest entity by ID if the given value is not nil.
+func (smtu *SubModuleTestUpdate) SetNillablePractTestID(id *int) *SubModuleTestUpdate {
+	if id != nil {
+		smtu = smtu.SetPractTestID(*id)
+	}
+	return smtu
+}
+
+// SetPractTest sets the "PractTest" edge to the PractTest entity.
+func (smtu *SubModuleTestUpdate) SetPractTest(p *PractTest) *SubModuleTestUpdate {
+	return smtu.SetPractTestID(p.ID)
+}
+
 // Mutation returns the SubModuleTestMutation object of the builder.
 func (smtu *SubModuleTestUpdate) Mutation() *SubModuleTestMutation {
 	return smtu.mutation
@@ -79,6 +99,12 @@ func (smtu *SubModuleTestUpdate) ClearSubModule() *SubModuleTestUpdate {
 // ClearTherTest clears the "TherTest" edge to the TheoreticalTest entity.
 func (smtu *SubModuleTestUpdate) ClearTherTest() *SubModuleTestUpdate {
 	smtu.mutation.ClearTherTest()
+	return smtu
+}
+
+// ClearPractTest clears the "PractTest" edge to the PractTest entity.
+func (smtu *SubModuleTestUpdate) ClearPractTest() *SubModuleTestUpdate {
+	smtu.mutation.ClearPractTest()
 	return smtu
 }
 
@@ -238,6 +264,41 @@ func (smtu *SubModuleTestUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if smtu.mutation.PractTestCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   submoduletest.PractTestTable,
+			Columns: []string{submoduletest.PractTestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: practtest.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := smtu.mutation.PractTestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   submoduletest.PractTestTable,
+			Columns: []string{submoduletest.PractTestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: practtest.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, smtu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{submoduletest.Label}
@@ -293,6 +354,25 @@ func (smtuo *SubModuleTestUpdateOne) SetTherTest(t *TheoreticalTest) *SubModuleT
 	return smtuo.SetTherTestID(t.ID)
 }
 
+// SetPractTestID sets the "PractTest" edge to the PractTest entity by ID.
+func (smtuo *SubModuleTestUpdateOne) SetPractTestID(id int) *SubModuleTestUpdateOne {
+	smtuo.mutation.SetPractTestID(id)
+	return smtuo
+}
+
+// SetNillablePractTestID sets the "PractTest" edge to the PractTest entity by ID if the given value is not nil.
+func (smtuo *SubModuleTestUpdateOne) SetNillablePractTestID(id *int) *SubModuleTestUpdateOne {
+	if id != nil {
+		smtuo = smtuo.SetPractTestID(*id)
+	}
+	return smtuo
+}
+
+// SetPractTest sets the "PractTest" edge to the PractTest entity.
+func (smtuo *SubModuleTestUpdateOne) SetPractTest(p *PractTest) *SubModuleTestUpdateOne {
+	return smtuo.SetPractTestID(p.ID)
+}
+
 // Mutation returns the SubModuleTestMutation object of the builder.
 func (smtuo *SubModuleTestUpdateOne) Mutation() *SubModuleTestMutation {
 	return smtuo.mutation
@@ -307,6 +387,12 @@ func (smtuo *SubModuleTestUpdateOne) ClearSubModule() *SubModuleTestUpdateOne {
 // ClearTherTest clears the "TherTest" edge to the TheoreticalTest entity.
 func (smtuo *SubModuleTestUpdateOne) ClearTherTest() *SubModuleTestUpdateOne {
 	smtuo.mutation.ClearTherTest()
+	return smtuo
+}
+
+// ClearPractTest clears the "PractTest" edge to the PractTest entity.
+func (smtuo *SubModuleTestUpdateOne) ClearPractTest() *SubModuleTestUpdateOne {
+	smtuo.mutation.ClearPractTest()
 	return smtuo
 }
 
@@ -482,6 +568,41 @@ func (smtuo *SubModuleTestUpdateOne) sqlSave(ctx context.Context) (_node *SubMod
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: theoreticaltest.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if smtuo.mutation.PractTestCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   submoduletest.PractTestTable,
+			Columns: []string{submoduletest.PractTestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: practtest.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := smtuo.mutation.PractTestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   submoduletest.PractTestTable,
+			Columns: []string{submoduletest.PractTestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: practtest.FieldID,
 				},
 			},
 		}

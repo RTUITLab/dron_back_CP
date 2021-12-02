@@ -67,6 +67,26 @@ var (
 			},
 		},
 	}
+	// PractTestColumns holds the columns for the "PractTest" table.
+	PractTestColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "config", Type: field.TypeJSON},
+		{Name: "submoduletest_id", Type: field.TypeInt, Unique: true, Nullable: true},
+	}
+	// PractTestTable holds the schema information for the "PractTest" table.
+	PractTestTable = &schema.Table{
+		Name:       "PractTest",
+		Columns:    PractTestColumns,
+		PrimaryKey: []*schema.Column{PractTestColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "PractTest_SubModuleTest_PractTest",
+				Columns:    []*schema.Column{PractTestColumns[2]},
+				RefColumns: []*schema.Column{SubModuleTestColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// QuestionColumns holds the columns for the "Question" table.
 	QuestionColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -183,6 +203,7 @@ var (
 		AnswersTable,
 		ModuleTable,
 		ModuleDependciesTable,
+		PractTestTable,
 		QuestionTable,
 		RoleTable,
 		SubModuleTable,
@@ -201,6 +222,10 @@ func init() {
 	ModuleDependciesTable.ForeignKeys[1].RefTable = ModuleTable
 	ModuleDependciesTable.Annotation = &entsql.Annotation{
 		Table: "ModuleDependcies",
+	}
+	PractTestTable.ForeignKeys[0].RefTable = SubModuleTestTable
+	PractTestTable.Annotation = &entsql.Annotation{
+		Table: "PractTest",
 	}
 	QuestionTable.ForeignKeys[0].RefTable = TheoreticalTestTable
 	QuestionTable.Annotation = &entsql.Annotation{

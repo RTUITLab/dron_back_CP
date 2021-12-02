@@ -12,6 +12,7 @@ import (
 	"github.com/0B1t322/CP-Rosseti-Back/ent/answer"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/module"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/moduledependcies"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/role"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
@@ -35,6 +36,8 @@ type Client struct {
 	Module *ModuleClient
 	// ModuleDependcies is the client for interacting with the ModuleDependcies builders.
 	ModuleDependcies *ModuleDependciesClient
+	// PractTest is the client for interacting with the PractTest builders.
+	PractTest *PractTestClient
 	// Question is the client for interacting with the Question builders.
 	Question *QuestionClient
 	// Role is the client for interacting with the Role builders.
@@ -63,6 +66,7 @@ func (c *Client) init() {
 	c.Answer = NewAnswerClient(c.config)
 	c.Module = NewModuleClient(c.config)
 	c.ModuleDependcies = NewModuleDependciesClient(c.config)
+	c.PractTest = NewPractTestClient(c.config)
 	c.Question = NewQuestionClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.SubModule = NewSubModuleClient(c.config)
@@ -105,6 +109,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Answer:           NewAnswerClient(cfg),
 		Module:           NewModuleClient(cfg),
 		ModuleDependcies: NewModuleDependciesClient(cfg),
+		PractTest:        NewPractTestClient(cfg),
 		Question:         NewQuestionClient(cfg),
 		Role:             NewRoleClient(cfg),
 		SubModule:        NewSubModuleClient(cfg),
@@ -132,6 +137,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Answer:           NewAnswerClient(cfg),
 		Module:           NewModuleClient(cfg),
 		ModuleDependcies: NewModuleDependciesClient(cfg),
+		PractTest:        NewPractTestClient(cfg),
 		Question:         NewQuestionClient(cfg),
 		Role:             NewRoleClient(cfg),
 		SubModule:        NewSubModuleClient(cfg),
@@ -170,6 +176,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Answer.Use(hooks...)
 	c.Module.Use(hooks...)
 	c.ModuleDependcies.Use(hooks...)
+	c.PractTest.Use(hooks...)
 	c.Question.Use(hooks...)
 	c.Role.Use(hooks...)
 	c.SubModule.Use(hooks...)
@@ -542,6 +549,112 @@ func (c *ModuleDependciesClient) QueryModuleDependOn(md *ModuleDependcies) *Modu
 // Hooks returns the client hooks.
 func (c *ModuleDependciesClient) Hooks() []Hook {
 	return c.hooks.ModuleDependcies
+}
+
+// PractTestClient is a client for the PractTest schema.
+type PractTestClient struct {
+	config
+}
+
+// NewPractTestClient returns a client for the PractTest from the given config.
+func NewPractTestClient(c config) *PractTestClient {
+	return &PractTestClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `practtest.Hooks(f(g(h())))`.
+func (c *PractTestClient) Use(hooks ...Hook) {
+	c.hooks.PractTest = append(c.hooks.PractTest, hooks...)
+}
+
+// Create returns a create builder for PractTest.
+func (c *PractTestClient) Create() *PractTestCreate {
+	mutation := newPractTestMutation(c.config, OpCreate)
+	return &PractTestCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PractTest entities.
+func (c *PractTestClient) CreateBulk(builders ...*PractTestCreate) *PractTestCreateBulk {
+	return &PractTestCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PractTest.
+func (c *PractTestClient) Update() *PractTestUpdate {
+	mutation := newPractTestMutation(c.config, OpUpdate)
+	return &PractTestUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PractTestClient) UpdateOne(pt *PractTest) *PractTestUpdateOne {
+	mutation := newPractTestMutation(c.config, OpUpdateOne, withPractTest(pt))
+	return &PractTestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PractTestClient) UpdateOneID(id int) *PractTestUpdateOne {
+	mutation := newPractTestMutation(c.config, OpUpdateOne, withPractTestID(id))
+	return &PractTestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PractTest.
+func (c *PractTestClient) Delete() *PractTestDelete {
+	mutation := newPractTestMutation(c.config, OpDelete)
+	return &PractTestDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *PractTestClient) DeleteOne(pt *PractTest) *PractTestDeleteOne {
+	return c.DeleteOneID(pt.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *PractTestClient) DeleteOneID(id int) *PractTestDeleteOne {
+	builder := c.Delete().Where(practtest.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PractTestDeleteOne{builder}
+}
+
+// Query returns a query builder for PractTest.
+func (c *PractTestClient) Query() *PractTestQuery {
+	return &PractTestQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a PractTest entity by its id.
+func (c *PractTestClient) Get(ctx context.Context, id int) (*PractTest, error) {
+	return c.Query().Where(practtest.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PractTestClient) GetX(ctx context.Context, id int) *PractTest {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySubModuleTest queries the SubModuleTest edge of a PractTest.
+func (c *PractTestClient) QuerySubModuleTest(pt *PractTest) *SubModuleTestQuery {
+	query := &SubModuleTestQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(practtest.Table, practtest.FieldID, id),
+			sqlgraph.To(submoduletest.Table, submoduletest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, practtest.SubModuleTestTable, practtest.SubModuleTestColumn),
+		)
+		fromV = sqlgraph.Neighbors(pt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PractTestClient) Hooks() []Hook {
+	return c.hooks.PractTest
 }
 
 // QuestionClient is a client for the Question schema.
@@ -1004,6 +1117,22 @@ func (c *SubModuleTestClient) QueryTherTest(smt *SubModuleTest) *TheoreticalTest
 			sqlgraph.From(submoduletest.Table, submoduletest.FieldID, id),
 			sqlgraph.To(theoreticaltest.Table, theoreticaltest.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, submoduletest.TherTestTable, submoduletest.TherTestColumn),
+		)
+		fromV = sqlgraph.Neighbors(smt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPractTest queries the PractTest edge of a SubModuleTest.
+func (c *SubModuleTestClient) QueryPractTest(smt *SubModuleTest) *PractTestQuery {
+	query := &PractTestQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := smt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(submoduletest.Table, submoduletest.FieldID, id),
+			sqlgraph.To(practtest.Table, practtest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, submoduletest.PractTestTable, submoduletest.PractTestColumn),
 		)
 		fromV = sqlgraph.Neighbors(smt.driver.Dialect(), step)
 		return fromV, nil

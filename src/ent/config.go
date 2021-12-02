@@ -27,6 +27,7 @@ type hooks struct {
 	Answer           []ent.Hook
 	Module           []ent.Hook
 	ModuleDependcies []ent.Hook
+	PractTest        []ent.Hook
 	Question         []ent.Hook
 	Role             []ent.Hook
 	SubModule        []ent.Hook

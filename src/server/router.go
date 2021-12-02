@@ -46,43 +46,14 @@ func NewRouter(c *Controllers) *gin.Engine {
 			module.POST("", c.Module.CreateModule)
 			module.POST("/:id/submodule", c.Module.AddSubModule)
 			module.POST("/submodule/:id/test", c.Module.AddSubModuleTest)
+			module.POST("/submodule/:id/test/theor", c.Module.AddTheorTest)
+			module.POST("/submodule/:id/test/pract", c.Module.AddPractTest)
+			module.PUT("/submodule/:id/test/pract", c.Module.UpdateConfigToPractTest)
+			module.PUT("/submodule/:id/test/theor", c.Module.UpdateTheorTest)
+
+			
 		}
 	}
 
 	return router
 }
-
-/*
-{
-  "theoreticalTest": {
-    "questions": [
-      {
-        "answers": [
-          {
-            "answer": "a_1",
-            "correct": false
-          },
-          {
-            "answer": "a_2",
-            "correct": true
-          }
-        ],
-        "question": "q_1"
-      },
-      {
-        "answers": [
-          {
-            "answer": "a_1",
-            "correct": false
-          },
-          {
-            "answer": "a_2",
-            "correct": true
-          }
-        ],
-        "question": "q_2"
-      }
-    ]
-  }
-}
-*/

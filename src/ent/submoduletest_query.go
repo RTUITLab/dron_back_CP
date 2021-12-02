@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/predicate"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
@@ -30,6 +31,7 @@ type SubModuleTestQuery struct {
 	// eager-loading edges.
 	withSubModule *SubModuleQuery
 	withTherTest  *TheoreticalTestQuery
+	withPractTest *PractTestQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -103,6 +105,28 @@ func (smtq *SubModuleTestQuery) QueryTherTest() *TheoreticalTestQuery {
 			sqlgraph.From(submoduletest.Table, submoduletest.FieldID, selector),
 			sqlgraph.To(theoreticaltest.Table, theoreticaltest.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, submoduletest.TherTestTable, submoduletest.TherTestColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(smtq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPractTest chains the current query on the "PractTest" edge.
+func (smtq *SubModuleTestQuery) QueryPractTest() *PractTestQuery {
+	query := &PractTestQuery{config: smtq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := smtq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := smtq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(submoduletest.Table, submoduletest.FieldID, selector),
+			sqlgraph.To(practtest.Table, practtest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, submoduletest.PractTestTable, submoduletest.PractTestColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(smtq.driver.Dialect(), step)
 		return fromU, nil
@@ -293,6 +317,7 @@ func (smtq *SubModuleTestQuery) Clone() *SubModuleTestQuery {
 		predicates:    append([]predicate.SubModuleTest{}, smtq.predicates...),
 		withSubModule: smtq.withSubModule.Clone(),
 		withTherTest:  smtq.withTherTest.Clone(),
+		withPractTest: smtq.withPractTest.Clone(),
 		// clone intermediate query.
 		sql:  smtq.sql.Clone(),
 		path: smtq.path,
@@ -318,6 +343,17 @@ func (smtq *SubModuleTestQuery) WithTherTest(opts ...func(*TheoreticalTestQuery)
 		opt(query)
 	}
 	smtq.withTherTest = query
+	return smtq
+}
+
+// WithPractTest tells the query-builder to eager-load the nodes that are connected to
+// the "PractTest" edge. The optional arguments are used to configure the query builder of the edge.
+func (smtq *SubModuleTestQuery) WithPractTest(opts ...func(*PractTestQuery)) *SubModuleTestQuery {
+	query := &PractTestQuery{config: smtq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	smtq.withPractTest = query
 	return smtq
 }
 
@@ -386,9 +422,10 @@ func (smtq *SubModuleTestQuery) sqlAll(ctx context.Context) ([]*SubModuleTest, e
 	var (
 		nodes       = []*SubModuleTest{}
 		_spec       = smtq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			smtq.withSubModule != nil,
 			smtq.withTherTest != nil,
+			smtq.withPractTest != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -458,6 +495,30 @@ func (smtq *SubModuleTestQuery) sqlAll(ctx context.Context) ([]*SubModuleTest, e
 				return nil, fmt.Errorf(`unexpected foreign-key "submoduletest_id" returned %v for node %v`, fk, n.ID)
 			}
 			node.Edges.TherTest = n
+		}
+	}
+
+	if query := smtq.withPractTest; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*SubModuleTest)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.Where(predicate.PractTest(func(s *sql.Selector) {
+			s.Where(sql.InValues(submoduletest.PractTestColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.SubmoduletestID
+			node, ok := nodeids[fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "submoduletest_id" returned %v for node %v`, fk, n.ID)
+			}
+			node.Edges.PractTest = n
 		}
 	}
 

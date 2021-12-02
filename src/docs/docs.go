@@ -254,6 +254,282 @@ var doc = `{
                 }
             }
         },
+        "/v1/module/submodule/{id}/test/pract": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "update Pract test to submodule test\nthat can do only admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "update Pract test",
+                "parameters": [
+                    {
+                        "description": "Pract test info",
+                        "name": "theotest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/module.UpdateConfigReq"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id of submodule",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/module.AddPractTestResp"
+                        }
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "module not found",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "add Pract test to submodule test\nthat can do only admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "add Pract test",
+                "parameters": [
+                    {
+                        "description": "Pract test info",
+                        "name": "theotest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/module.AddPractTestReq"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id of submodule",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/module.AddPractTestResp"
+                        }
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "module not found",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/module/submodule/{id}/test/theor": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "add questions to Theor test",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "add questions to Theor test",
+                "parameters": [
+                    {
+                        "description": "Theor test info",
+                        "name": "theortest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/module.UpdateTheorTestReq"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id of submodule",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/module.AddTheorTestResp"
+                        }
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "module not found",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "add theor test to submodule test\nthat can do only admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "add theor test",
+                "parameters": [
+                    {
+                        "description": "Theor test info",
+                        "name": "theotest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/module.AddTheorTestReq"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id of submodule",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/module.AddTheorTestResp"
+                        }
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "module not found",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/module/{id}/submodule": {
             "post": {
                 "security": [
@@ -616,6 +892,27 @@ var doc = `{
                 }
             }
         },
+        "module.AddPractTestReq": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "module.AddPractTestResp": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "module.AddQuestionResp": {
             "type": "object",
             "properties": {
@@ -664,6 +961,9 @@ var doc = `{
         "module.AddSubModuleTestReq": {
             "type": "object",
             "properties": {
+                "practTest": {
+                    "$ref": "#/definitions/module.CreatePractTestReq"
+                },
                 "theoreticalTest": {
                     "$ref": "#/definitions/module.CreateTheoreticalTestReq"
                 }
@@ -675,8 +975,33 @@ var doc = `{
                 "id": {
                     "type": "integer"
                 },
+                "practTest": {
+                    "$ref": "#/definitions/module.AddPractTestResp"
+                },
                 "theoreticalTest": {
                     "$ref": "#/definitions/module.AddTheoreticalTestResp"
+                }
+            }
+        },
+        "module.AddTheorTestReq": {
+            "type": "object",
+            "properties": {
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.CreateQuestionReq"
+                    }
+                }
+            }
+        },
+        "module.AddTheorTestResp": {
+            "type": "object",
+            "properties": {
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.AddQuestionResp"
+                    }
                 }
             }
         },
@@ -721,6 +1046,15 @@ var doc = `{
                 }
             }
         },
+        "module.CreatePractTestReq": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
         "module.CreateQuestionReq": {
             "type": "object",
             "properties": {
@@ -736,6 +1070,26 @@ var doc = `{
             }
         },
         "module.CreateTheoreticalTestReq": {
+            "type": "object",
+            "properties": {
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.CreateQuestionReq"
+                    }
+                }
+            }
+        },
+        "module.UpdateConfigReq": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "module.UpdateTheorTestReq": {
             "type": "object",
             "properties": {
                 "questions": {

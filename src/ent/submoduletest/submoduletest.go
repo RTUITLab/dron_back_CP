@@ -13,6 +13,8 @@ const (
 	EdgeSubModule = "SubModule"
 	// EdgeTherTest holds the string denoting the thertest edge name in mutations.
 	EdgeTherTest = "TherTest"
+	// EdgePractTest holds the string denoting the practtest edge name in mutations.
+	EdgePractTest = "PractTest"
 	// Table holds the table name of the submoduletest in the database.
 	Table = "SubModuleTest"
 	// SubModuleTable is the table that holds the SubModule relation/edge.
@@ -29,6 +31,13 @@ const (
 	TherTestInverseTable = "TheoreticalTest"
 	// TherTestColumn is the table column denoting the TherTest relation/edge.
 	TherTestColumn = "submoduletest_id"
+	// PractTestTable is the table that holds the PractTest relation/edge.
+	PractTestTable = "PractTest"
+	// PractTestInverseTable is the table name for the PractTest entity.
+	// It exists in this package in order to avoid circular dependency with the "practtest" package.
+	PractTestInverseTable = "PractTest"
+	// PractTestColumn is the table column denoting the PractTest relation/edge.
+	PractTestColumn = "submoduletest_id"
 )
 
 // Columns holds all SQL columns for submoduletest fields.

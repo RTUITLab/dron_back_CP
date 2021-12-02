@@ -15,6 +15,9 @@ type Module func(*sql.Selector)
 // ModuleDependcies is the predicate function for moduledependcies builders.
 type ModuleDependcies func(*sql.Selector)
 
+// PractTest is the predicate function for practtest builders.
+type PractTest func(*sql.Selector)
+
 // Question is the predicate function for question builders.
 type Question func(*sql.Selector)
 

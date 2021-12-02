@@ -36,5 +36,7 @@ func (SubModuleTest) Edges() []ent.Edge {
 			Required(),
 		edge.To("TherTest", TheoreticalTest.Type).
 			Unique(),
+		edge.To("PractTest", PractTest.Type).
+			Unique(),
 	}
 }

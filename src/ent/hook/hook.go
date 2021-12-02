@@ -48,6 +48,19 @@ func (f ModuleDependciesFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return f(ctx, mv)
 }
 
+// The PractTestFunc type is an adapter to allow the use of ordinary
+// function as PractTest mutator.
+type PractTestFunc func(context.Context, *ent.PractTestMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PractTestFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.PractTestMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PractTestMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The QuestionFunc type is an adapter to allow the use of ordinary
 // function as Question mutator.
 type QuestionFunc func(context.Context, *ent.QuestionMutation) (ent.Value, error)

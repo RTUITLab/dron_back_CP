@@ -18,6 +18,8 @@ type Tx struct {
 	Module *ModuleClient
 	// ModuleDependcies is the client for interacting with the ModuleDependcies builders.
 	ModuleDependcies *ModuleDependciesClient
+	// PractTest is the client for interacting with the PractTest builders.
+	PractTest *PractTestClient
 	// Question is the client for interacting with the Question builders.
 	Question *QuestionClient
 	// Role is the client for interacting with the Role builders.
@@ -168,6 +170,7 @@ func (tx *Tx) init() {
 	tx.Answer = NewAnswerClient(tx.config)
 	tx.Module = NewModuleClient(tx.config)
 	tx.ModuleDependcies = NewModuleDependciesClient(tx.config)
+	tx.PractTest = NewPractTestClient(tx.config)
 	tx.Question = NewQuestionClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.SubModule = NewSubModuleClient(tx.config)

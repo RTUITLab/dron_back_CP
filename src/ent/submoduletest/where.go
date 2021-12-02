@@ -202,6 +202,34 @@ func HasTherTestWith(preds ...predicate.TheoreticalTest) predicate.SubModuleTest
 	})
 }
 
+// HasPractTest applies the HasEdge predicate on the "PractTest" edge.
+func HasPractTest() predicate.SubModuleTest {
+	return predicate.SubModuleTest(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PractTestTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, PractTestTable, PractTestColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPractTestWith applies the HasEdge predicate on the "PractTest" edge with a given conditions (other predicates).
+func HasPractTestWith(preds ...predicate.PractTest) predicate.SubModuleTest {
+	return predicate.SubModuleTest(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PractTestInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, PractTestTable, PractTestColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.SubModuleTest) predicate.SubModuleTest {
 	return predicate.SubModuleTest(func(s *sql.Selector) {

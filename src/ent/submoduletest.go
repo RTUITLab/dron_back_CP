@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
@@ -30,9 +31,11 @@ type SubModuleTestEdges struct {
 	SubModule *SubModule `json:"SubModule,omitempty"`
 	// TherTest holds the value of the TherTest edge.
 	TherTest *TheoreticalTest `json:"TherTest,omitempty"`
+	// PractTest holds the value of the PractTest edge.
+	PractTest *PractTest `json:"PractTest,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // SubModuleOrErr returns the SubModule value or an error if the edge
@@ -61,6 +64,20 @@ func (e SubModuleTestEdges) TherTestOrErr() (*TheoreticalTest, error) {
 		return e.TherTest, nil
 	}
 	return nil, &NotLoadedError{edge: "TherTest"}
+}
+
+// PractTestOrErr returns the PractTest value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SubModuleTestEdges) PractTestOrErr() (*PractTest, error) {
+	if e.loadedTypes[2] {
+		if e.PractTest == nil {
+			// The edge PractTest was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: practtest.Label}
+		}
+		return e.PractTest, nil
+	}
+	return nil, &NotLoadedError{edge: "PractTest"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -110,6 +127,11 @@ func (smt *SubModuleTest) QuerySubModule() *SubModuleQuery {
 // QueryTherTest queries the "TherTest" edge of the SubModuleTest entity.
 func (smt *SubModuleTest) QueryTherTest() *TheoreticalTestQuery {
 	return (&SubModuleTestClient{config: smt.config}).QueryTherTest(smt)
+}
+
+// QueryPractTest queries the "PractTest" edge of the SubModuleTest entity.
+func (smt *SubModuleTest) QueryPractTest() *PractTestQuery {
+	return (&SubModuleTestClient{config: smt.config}).QueryPractTest(smt)
 }
 
 // Update returns a builder for updating this SubModuleTest.

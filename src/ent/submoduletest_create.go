@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
@@ -55,6 +56,25 @@ func (smtc *SubModuleTestCreate) SetNillableTherTestID(id *int) *SubModuleTestCr
 // SetTherTest sets the "TherTest" edge to the TheoreticalTest entity.
 func (smtc *SubModuleTestCreate) SetTherTest(t *TheoreticalTest) *SubModuleTestCreate {
 	return smtc.SetTherTestID(t.ID)
+}
+
+// SetPractTestID sets the "PractTest" edge to the PractTest entity by ID.
+func (smtc *SubModuleTestCreate) SetPractTestID(id int) *SubModuleTestCreate {
+	smtc.mutation.SetPractTestID(id)
+	return smtc
+}
+
+// SetNillablePractTestID sets the "PractTest" edge to the PractTest entity by ID if the given value is not nil.
+func (smtc *SubModuleTestCreate) SetNillablePractTestID(id *int) *SubModuleTestCreate {
+	if id != nil {
+		smtc = smtc.SetPractTestID(*id)
+	}
+	return smtc
+}
+
+// SetPractTest sets the "PractTest" edge to the PractTest entity.
+func (smtc *SubModuleTestCreate) SetPractTest(p *PractTest) *SubModuleTestCreate {
+	return smtc.SetPractTestID(p.ID)
 }
 
 // Mutation returns the SubModuleTestMutation object of the builder.
@@ -191,6 +211,25 @@ func (smtc *SubModuleTestCreate) createSpec() (*SubModuleTest, *sqlgraph.CreateS
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: theoreticaltest.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := smtc.mutation.PractTestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   submoduletest.PractTestTable,
+			Columns: []string{submoduletest.PractTestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: practtest.FieldID,
 				},
 			},
 		}
