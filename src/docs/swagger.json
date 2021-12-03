@@ -113,6 +113,61 @@
             }
         },
         "/v1/module": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "get modules",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "get modules",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name filter",
+                        "name": "namemMatch",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "name filter",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "name filter",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/module.GetModulesResp"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -1452,6 +1507,17 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/module.AddSubModuleResp"
+                    }
+                }
+            }
+        },
+        "module.GetModulesResp": {
+            "type": "object",
+            "properties": {
+                "modules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.GetModuleResp"
                     }
                 }
             }

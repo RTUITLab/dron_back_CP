@@ -44,6 +44,7 @@ func NewRouter(c *Controllers) *gin.Engine {
 		module := v1.Group("/module")
 		{
 			module.POST("", c.Module.CreateModule)
+			module.GET("", c.Module.HTTPGetModules)
 			module.GET("/:id", c.Module.HTTPGetModule)
 			module.PUT("/:id/dependecy", c.Module.HTTPAddModuleDependecy)
 			module.DELETE("/:id/dependecy", c.Module.HTTPDeleteModuleDependecy)

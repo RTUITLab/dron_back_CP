@@ -3,6 +3,7 @@ package module
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/0B1t322/CP-Rosseti-Back/ent"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/module"
@@ -1790,6 +1791,129 @@ func (m ModuleController) HTTPDeleteModuleDependecy(
 		c.JSON(http.StatusInternalServerError, e.FromString("Failed to Delete module dependecy"))
 		c.Abort()
 		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+type GetModulesReq struct {
+}
+
+type GetModulesResp struct {
+	Modules []GetModuleResp `json:"modules"`
+}
+
+func (m ModuleController) GetModules(
+	ctx context.Context,
+	nameMatch string,
+	offset, limit int,
+) (*GetModulesResp, error) {
+	builder := m.Client.Module.Query().
+		WithModuleDependcies().
+		WithSubModules()
+	if nameMatch != "" {
+		builder.Where(module.NameContains(nameMatch))
+	}
+	if offset != 0 {
+		builder.Offset(offset)
+	}
+	if limit != 0 {
+		builder.Limit(limit)
+	}
+
+	modules, err := builder.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp GetModulesResp
+	{
+		for _, module := range modules {
+			var moduleResp GetModuleResp
+			{
+				moduleResp.ID = module.ID
+				moduleResp.Name = module.Name
+				if module.Edges.SubModules != nil {
+					for _, subModule := range module.Edges.SubModules {
+						moduleResp.SubModules = append(
+							moduleResp.SubModules,
+							AddSubModuleResp{
+								ID:       subModule.ID,
+								ModuleID: module.ID,
+								Name:     subModule.Name,
+								Text:     subModule.Text,
+							},
+						)
+					}
+				}
+
+				if module.Edges.ModuleDependcies != nil {
+					for _, dependOn := range module.Edges.ModuleDependcies {
+						moduleResp.DependOn = append(moduleResp.DependOn, dependOn.DependentOnID)
+					}
+				}
+			}
+			resp.Modules = append(resp.Modules, moduleResp)
+		}
+	}
+	return &resp, nil
+}
+
+// HTTPGetModules
+//
+// @Tags module
+//
+// @Summary get modules
+//
+// @Description get modules
+//
+// @Router /v1/module [get]
+//
+// @Security ApiKeyAuth
+//
+// @Param namemMatch query string false "name filter"
+// 
+// @Param offset query integer false "name filter"
+// 
+// @Param limit query integer false "name filter"
+//
+// @Produce json
+//
+// @Success 200 {object} module.GetModulesResp
+//
+// @Failure 500 {object} e.Error "internal"
+//
+// @Failure 401 {object} e.Error "not auth"
+func (m ModuleController) HTTPGetModules(c *gin.Context) {
+	var (
+		nameMatch = c.Query("nameMatch")
+		offsetStr = c.Query("offset")
+		limitStr  = c.Query("limit")
+
+		offset int
+		limit  int
+	)
+
+	if offsetStr != "" {
+		offset, _ = strconv.Atoi(offsetStr)
+	}
+
+	if limitStr != "" {
+		limit, _ = strconv.Atoi(limitStr)
+	}
+
+	resp, err := m.GetModules(c, nameMatch, offset, limit)
+	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "GetModules",
+				"err":  err,
+			},
+		).Error("Failed to Get Modules module dependecy")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed to Get Modules module dependecy"))
+		c.Abort()
+		return		
 	}
 
 	c.JSON(http.StatusOK, resp)
