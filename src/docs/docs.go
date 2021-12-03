@@ -749,6 +749,72 @@ var doc = `{
                 }
             }
         },
+        "/v1/module/test/theor/try/{id}": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "try module theor test",
+                "parameters": [
+                    {
+                        "description": "ModuleTest info",
+                        "name": "moduletest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/module.TryAnswerQuestionReq"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id of try",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "module not found",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/module/{id}": {
             "get": {
                 "security": [
@@ -1303,6 +1369,75 @@ var doc = `{
                 "responses": {
                     "200": {
                         "description": ""
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "module not found",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/module/{id}/test/theor/try": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "try module theor test",
+                "parameters": [
+                    {
+                        "description": "ModuleTest info",
+                        "name": "moduletest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/module.TryTheoreticalTestReq"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id of module",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/module.TryTheoreticalTestResp"
+                        }
                     },
                     "400": {
                         "description": "some user error",
@@ -1975,6 +2110,9 @@ var doc = `{
                     "items": {
                         "$ref": "#/definitions/module.AddSubModuleResp"
                     }
+                },
+                "tests": {
+                    "$ref": "#/definitions/module.AddModuleTestResp"
                 }
             }
         },
@@ -2006,6 +2144,51 @@ var doc = `{
                 },
                 "text": {
                     "type": "string"
+                }
+            }
+        },
+        "module.TryAnswerQuestionReq": {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "string"
+                },
+                "qustionId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "module.TryTheoreticalTestQuestuions": {
+            "type": "object",
+            "properties": {
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "module.TryTheoreticalTestReq": {
+            "type": "object"
+        },
+        "module.TryTheoreticalTestResp": {
+            "type": "object",
+            "properties": {
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.TryTheoreticalTestQuestuions"
+                    }
+                },
+                "try_id": {
+                    "type": "integer"
                 }
             }
         },

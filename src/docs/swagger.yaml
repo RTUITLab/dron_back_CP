@@ -261,6 +261,8 @@ definitions:
         items:
           $ref: '#/definitions/module.AddSubModuleResp'
         type: array
+      tests:
+        $ref: '#/definitions/module.AddModuleTestResp'
     type: object
   module.GetModulesResp:
     properties:
@@ -281,6 +283,35 @@ definitions:
         $ref: '#/definitions/module.AddSubModuleTestResp'
       text:
         type: string
+    type: object
+  module.TryAnswerQuestionReq:
+    properties:
+      answer:
+        type: string
+      qustionId:
+        type: integer
+    type: object
+  module.TryTheoreticalTestQuestuions:
+    properties:
+      answers:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      text:
+        type: string
+    type: object
+  module.TryTheoreticalTestReq:
+    type: object
+  module.TryTheoreticalTestResp:
+    properties:
+      questions:
+        items:
+          $ref: '#/definitions/module.TryTheoreticalTestQuestuions'
+        type: array
+      try_id:
+        type: integer
     type: object
   module.UpdateAnswersReq:
     properties:
@@ -933,6 +964,50 @@ paths:
       summary: update Theor test
       tags:
       - module
+  /v1/module/{id}/test/theor/try:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ModuleTest info
+        in: body
+        name: moduletest
+        required: true
+        schema:
+          $ref: '#/definitions/module.TryTheoreticalTestReq'
+      - description: id of module
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/module.TryTheoreticalTestResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: try module theor test
+      tags:
+      - module
   /v1/module/submodule/{id}:
     get:
       description: get sub module
@@ -1267,6 +1342,48 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: update Theor test
+      tags:
+      - module
+  /v1/module/test/theor/try/{id}:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ModuleTest info
+        in: body
+        name: moduletest
+        required: true
+        schema:
+          $ref: '#/definitions/module.TryAnswerQuestionReq'
+      - description: id of try
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: try module theor test
       tags:
       - module
   /v1/user:

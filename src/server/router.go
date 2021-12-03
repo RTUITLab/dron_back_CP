@@ -41,7 +41,7 @@ func NewRouter(c *Controllers) *gin.Engine {
 			auth.POST("/refresh", c.Auth.Refresh)
 		}
 
-		module := v1.Group("/module")
+		module := v1.Group("/module").Use(c.Auth.TokenAuthMiddleware())
 		{
 			module.POST("", c.Module.CreateModule)
 			module.GET("", c.Module.HTTPGetModules)
@@ -64,6 +64,8 @@ func NewRouter(c *Controllers) *gin.Engine {
 			module.DELETE("/:id/test/pract", c.Module.DeleteModulePractTest)
 			module.GET("/submodule/:id", c.Module.GetSubModule)
 
+			module.POST("/:id/test/theor/try", c.Module.TryTheoreticalTest)
+			module.POST("/test/theor/try/:id", c.Module.TryAnswerQuestion)
 		}
 	}
 

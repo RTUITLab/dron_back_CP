@@ -7,10 +7,12 @@ import (
 	"time"
 
 	"github.com/0B1t322/CP-Rosseti-Back/ent"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/answer"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/module"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/moduledependcies"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/moduletest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
@@ -1927,7 +1929,7 @@ type GetModuleResp struct {
 	Name       string             `json:"name"`
 	SubModules []AddSubModuleResp `json:"subModules,omitempty"`
 	DependOn   []int              `json:"dependOn,omitempty"`
-	Tests       *AddModuleTestResp  `json:"tests"`
+	Tests      *AddModuleTestResp `json:"tests"`
 }
 
 func (m ModuleController) GetModule(ctx context.Context, id int) (*GetModuleResp, error) {
@@ -2062,15 +2064,15 @@ func (m ModuleController) GetModule(ctx context.Context, id int) (*GetModuleResp
 		if getPractTest != nil {
 			practTest = &AddModulePractTestResp{
 				Duratione: int64(getPractTest.Duration),
-				ID: getPractTest.ID,
-				Config: getPractTest.Config,
+				ID:        getPractTest.ID,
+				Config:    getPractTest.Config,
 			}
 		}
 
 		if getPractTest != nil || getTheorTest != nil {
 			task = &AddModuleTestResp{
 				TheoretcialTest: theorTest,
-				PractTest: practTest,
+				PractTest:       practTest,
 			}
 
 			if getPractTest != nil {
@@ -2796,4 +2798,234 @@ func (m ModuleController) AddModuleTest(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, resp)
+}
+
+type TryTheoreticalTestReq struct {
+	ModuleID int `json:"-" uri:"id"`
+}
+
+type TryTheoreticalTestResp struct {
+	TryID     int                            `json:"try_id"`
+	Questions []TryTheoreticalTestQuestuions `json:"questions"`
+}
+
+type TryTheoreticalTestQuestuions struct {
+	ID       int      `json:"id"`
+	Question string   `json:"text"`
+	Answers  []string `json:"answers"`
+}
+
+// TryTheoreticalTest
+//
+// @Tags module
+//
+// @Summary try module theor test
+//
+//
+// @Router /v1/module/{id}/test/theor/try [post]
+//
+// @Security ApiKeyAuth
+//
+// @Param moduletest body module.TryTheoreticalTestReq true "ModuleTest info"
+//
+// @Param id path integer true "id of module"
+//
+// @Accept json
+//
+// @Produce json
+//
+// @Success 200 {object} module.TryTheoreticalTestResp
+//
+// @Failure 400 {object} e.Error "some user error"
+//
+// @Failure 404 {object} e.Error "module not found"
+//
+// @Failure 500 {object} e.Error "internal"
+//
+// @Failure 401 {object} e.Error "not auth"
+func (m ModuleController) TryTheoreticalTest(c *gin.Context) {
+	var req TryTheoreticalTestReq
+	{
+		if err := c.ShouldBindUri(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("ID is not integer"))
+			c.Abort()
+			return
+		}
+	}
+
+	TheoreticalTestID, err := m.Client.TheoreticalTest.Query().
+								Where(
+									theoreticaltest.HasTestWith(
+										test.HasModuleTestWith(
+											moduletest.HasModuleWith(
+												module.ID(req.ModuleID),
+											),
+										),
+									),
+								).OnlyID(c)
+
+	value, _ := c.Get("user_id")
+	userid := value.(int)
+
+	try, err := m.Client.TheoreticalTry.Create().
+		SetStart(time.Now()).
+		SetUserID(userid).
+		SetTheoreticalTestID(TheoreticalTestID).
+		Save(c)
+	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "AddSubModuleTest",
+				"err":  err,
+			},
+		).Error("Failed add submodule test")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed to add submodule test"))
+		c.Abort()
+		return
+	}
+
+	entQuestions, err := m.Client.Question.Query().
+							WithAnswer().
+							Where(question.TheoricalTestID(TheoreticalTestID)).
+							All(c)
+	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "AddSubModuleTest",
+				"err":  err,
+			},
+		).Error("Failed add submodule test")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed to add submodule test"))
+		c.Abort()
+		return
+	}
+
+	var resp TryTheoreticalTestResp
+	{
+		resp.TryID = try.ID
+
+		var questions []TryTheoreticalTestQuestuions
+		{
+			for _, question := range entQuestions {
+				var answers []string
+				{
+					for _, answer := range question.Edges.Answer {
+						answers = append(answers, answer.Answer)
+					}
+				}
+				questions = append(
+					questions, 
+					TryTheoreticalTestQuestuions{
+						ID: question.ID,
+						Question: question.Question,
+						Answers: answers,
+					},
+				)
+			}
+		}
+		resp.Questions = questions
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+type TryAnswerQuestionReq struct {
+	TryID		int		`json:"-" uri:"id"`
+	QuestionID	int		`json:"qustionId"`
+	Answer		string	`json:"answer"`
+}
+
+// TryTheoreticalTest
+//
+// @Tags module
+//
+// @Summary try module theor test
+//
+//
+// @Router /v1/module/test/theor/try/{id} [post]
+//
+// @Security ApiKeyAuth
+//
+// @Param moduletest body module.TryAnswerQuestionReq true "ModuleTest info"
+//
+// @Param id path integer true "id of try"
+//
+// @Accept json
+//
+// @Produce json
+//
+// @Success 200
+//
+// @Failure 400 {object} e.Error "some user error"
+//
+// @Failure 404 {object} e.Error "module not found"
+//
+// @Failure 500 {object} e.Error "internal"
+//
+// @Failure 401 {object} e.Error "not auth"
+func (m ModuleController) TryAnswerQuestion(c *gin.Context) {
+	var req TryAnswerQuestionReq
+	{
+		if err := c.ShouldBindUri(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("ID is not integer"))
+			c.Abort()
+			return
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("Unexpected body"))
+			c.Abort()
+			return
+		}
+	}
+
+	correctAnswer, err := m.Client.Answer.
+								Query().Where(
+									answer.QuestionID(req.QuestionID),
+									answer.Correct(true),
+								).
+								All(c)
+	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "TryAnswerQuestion",
+				"err":  err,
+			},
+		).Error("Failed TryAnswerQuestion")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed to Try Answer Question"))
+		c.Abort()
+		return
+	}
+
+	var correct bool
+	for _, answer := range correctAnswer {
+		if answer.Answer == req.Answer {
+			correct = true
+		}
+	}
+
+
+	_, err = m.Client.TryAnswer.Create().
+			SetAsnwer(req.Answer).
+			SetCorrect(correct).
+			SetQuestionID(req.QuestionID).
+			SetTryID(req.TryID).
+			Save(c)
+	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "TryAnswerQuestion",
+				"err":  err,
+			},
+		).Error("Failed TryAnswerQuestion")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed to Try Answer Question"))
+		c.Abort()
+		return
+	}
+
+	c.Status(http.StatusOK)
 }

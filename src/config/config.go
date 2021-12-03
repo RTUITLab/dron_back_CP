@@ -9,10 +9,15 @@ import (
 type Config struct {
 	DB		*DBConfig
 	Auth	*Auth
+	App		*App
 }
 
 type DBConfig struct {
 	URI 	string 	`envconfig:"CP_BACK_DBURI" default:"root:root@/site"`
+}
+
+type App struct {
+	Port	string	`envconfig:"CP_BACK_APP_PORT" default:"8081"`
 }
 
 type Auth struct {

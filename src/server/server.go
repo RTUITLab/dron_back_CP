@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	"entgo.io/ent/dialect/sql/schema"
 	"github.com/0B1t322/CP-Rosseti-Back/config"
@@ -52,6 +53,6 @@ func StartServer() error {
 		schema.WithDropColumn(true),
 	)
 
-	return r.Run(":8080")
+	return r.Run(fmt.Sprintf(":%s", config.App.Port))
 }
 

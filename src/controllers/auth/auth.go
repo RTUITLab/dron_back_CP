@@ -280,7 +280,7 @@ func (a AuthController) ExtractToken(r *http.Request) string {
 	return ""
 }
 
-func (a AuthController) TokenValid(r *http.Request) error {
+func (a AuthController) TokenValid(c *gin.Context, r *http.Request) error {
 	token, err := a.VerifyToken(r)
 	if err != nil {
 	   return err
@@ -288,12 +288,17 @@ func (a AuthController) TokenValid(r *http.Request) error {
 	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
 	   return err
 	}
+	
+	claims := token.Claims.(jwt.MapClaims)
+	user_id := int(claims["user_id"].(float64))
+	c.Set("user_id", user_id)
+
 	return nil
 }
 
 func (a AuthController) TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		err := a.TokenValid(c.Request)
+		err := a.TokenValid(c, c.Request)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, e.FromError(err))
 			c.Abort()
