@@ -35,6 +35,9 @@ func (TheoreticalTest) Edges() []ent.Edge {
 			Unique().
 			Field("submoduletest_id").
 			Required(),
-		edge.To("Question", Question.Type),
+		edge.To("Question", Question.Type).
+		Annotations(
+			entsql.Annotation{OnDelete: entsql.Cascade},
+		),
 	}
 }

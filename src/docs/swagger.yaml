@@ -154,17 +154,45 @@ definitions:
           $ref: '#/definitions/module.CreateQuestionReq'
         type: array
     type: object
+  module.UpdateAnswersReq:
+    properties:
+      answer:
+        type: string
+      correct:
+        type: boolean
+      id:
+        type: integer
+    type: object
   module.UpdateConfigReq:
     properties:
       config:
         additionalProperties: true
         type: object
     type: object
+  module.UpdateQuestionReq:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/module.UpdateAnswersReq'
+        type: array
+      id:
+        type: integer
+      newAnswers:
+        items:
+          $ref: '#/definitions/module.CreateAnswerReq'
+        type: array
+      question:
+        type: string
+    type: object
   module.UpdateTheorTestReq:
     properties:
-      questions:
+      newQuestions:
         items:
           $ref: '#/definitions/module.CreateQuestionReq'
+        type: array
+      questions:
+        items:
+          $ref: '#/definitions/module.UpdateQuestionReq'
         type: array
     type: object
   user.CreateUserReq:
@@ -505,6 +533,40 @@ paths:
       tags:
       - module
   /v1/module/submodule/{id}/test/theor:
+    delete:
+      description: delete Theor test
+      parameters:
+      - description: id of submodule
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: delete Theor test
+      tags:
+      - module
     post:
       consumes:
       - application/json
@@ -554,7 +616,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: add questions to Theor test
+      description: update Theor test
       parameters:
       - description: Theor test info
         in: body
@@ -592,7 +654,7 @@ paths:
             $ref: '#/definitions/err.Error'
       security:
       - ApiKeyAuth: []
-      summary: add questions to Theor test
+      summary: update Theor test
       tags:
       - module
   /v1/user:

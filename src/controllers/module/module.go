@@ -5,7 +5,6 @@ import (
 
 	"github.com/0B1t322/CP-Rosseti-Back/ent"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
-	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
@@ -750,7 +749,6 @@ type UpdateConfigReq struct {
 	Config      map[string]interface{} `json:"config"`
 }
 
-
 // UpdateConfigToPractTest
 //
 // @Tags module
@@ -829,17 +827,32 @@ func (m ModuleController) UpdateConfigToPractTest(c *gin.Context) {
 }
 
 type UpdateTheorTestReq struct {
-	SubModuleID		int		`json:"-" uri:"id"`
-	Questions []CreateQuestionReq `json:"questions"`
+	SubModuleID  int                 `json:"-" uri:"id"`
+	Questions    []UpdateQuestionReq `json:"questions"`
+	NewQuestions []CreateQuestionReq `json:"newQuestions,omitempty"`
+}
+
+type UpdateQuestionReq struct {
+	ID         int                `json:"id"`
+	Question   *string            `json:"question,omitempty"`
+	Answers    []UpdateAnswersReq `json:"answers,omitepty"`
+	NewAnswers []CreateAnswerReq  `json:"newAnswers,omitempty"`
+	// DeleteAnswers []int              `json:"deleteAnswers,omitempty"`
+}
+
+type UpdateAnswersReq struct {
+	ID      int     `json:"id"`
+	Answer  *string `json:"answer"`
+	Correct *bool   `json:"correct"`
 }
 
 // UpdateTheorTest
 //
 // @Tags module
 //
-// @Summary add questions to Theor test
+// @Summary update Theor test
 //
-// @Description add questions to Theor test
+// @Description update Theor test
 //
 // @Router /v1/module/submodule/{id}/test/theor [put]
 //
@@ -891,7 +904,7 @@ func (m ModuleController) UpdateTheorTest(c *gin.Context) {
 		return
 	}
 
-	for _, question := range req.Questions {
+	for _, question := range req.NewQuestions {
 		createdQuestion, err := m.Client.Question.Create().
 			SetTheoreticalTestID(theorTestID).
 			SetQuestion(question.Question).
@@ -930,12 +943,40 @@ func (m ModuleController) UpdateTheorTest(c *gin.Context) {
 		}
 	}
 
+	for _, question := range req.Questions {
+		qustuinBuilder := m.Client.Question.UpdateOneID(question.ID)
+		if question.Question != nil {
+			qustuinBuilder.SetQuestion(*question.Question)
+		}
+		qustuinBuilder.Exec(c)
+
+		for _, answer := range question.Answers {
+			answerBuilder := m.Client.Answer.UpdateOneID(answer.ID)
+			if answer.Answer != nil {
+				answerBuilder.SetAnswer(*answer.Answer)
+			}
+			if answer.Correct != nil {
+				answerBuilder.SetCorrect(*answer.Correct)
+			}
+			answerBuilder.Exec(c)
+		}
+
+		for _, answer := range question.NewAnswers {
+			m.Client.Answer.Create().
+				SetAnswer(answer.Answer).
+				SetCorrect(answer.Correct).
+				SetQuestuionID(question.ID).
+				Save(c)
+		}
+					
+	}
+
 	theorTest, err := m.Client.TheoreticalTest.Query().
-						WithQuestion(
-							func(qq *ent.QuestionQuery) {
-								qq.WithAnswer()
-							},
-						).Where(theoreticaltest.ID(theorTestID)).Only(c)
+		WithQuestion(
+			func(qq *ent.QuestionQuery) {
+				qq.WithAnswer()
+			},
+		).Where(theoreticaltest.ID(theorTestID)).Only(c)
 	if err != nil {
 		log.WithFields(
 			log.Fields{
@@ -988,32 +1029,27 @@ func (m ModuleController) UpdateTheorTest(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-type AddAnswerReq struct {
-	QuestionID		int					`json:"-" uri:"id"`
-	Answers			[]CreateAnswerReq	`json:"answers"`
+type DeleteTheorTestReq struct {
+	SubModuleID		int		`json:"-" uri:"id"`
 }
 
-// AddAnsewerToQuestion
+// DeleteTheorTest
 //
 // @Tags module
 //
-// @Summary add questions to Theor test
+// @Summary delete Theor test
 //
-// @Description add questions to Theor test
+// @Description delete Theor test
 //
-// @Router /v1/module/submodule/test/theor/question/:id [put]
+// @Router /v1/module/submodule/{id}/test/theor [delete]
 //
 // @Security ApiKeyAuth
 //
-// @Param answer body module.AddAnswerReq true "answer info"
-//
-// @Param id path integer true "id of question"
-//
-// @Accept json
+// @Param id path integer true "id of submodule"
 //
 // @Produce json
 //
-// @Success 200 {object} module.AddTheorTestResp
+// @Success 200
 //
 // @Failure 400 {object} e.Error "some user error"
 //
@@ -1022,81 +1058,40 @@ type AddAnswerReq struct {
 // @Failure 500 {object} e.Error "internal"
 //
 // @Failure 401 {object} e.Error "not auth"
-func (m ModuleController) AddAnswerToQuestion(c *gin.Context) {
-	var req AddAnswerReq
+func (m ModuleController) DeleteTheorTest(c *gin.Context) {
+	var req DeleteTheorTestReq
 	{
 		if err := c.ShouldBindUri(&req); err != nil {
 			c.JSON(http.StatusBadRequest, e.FromString("ID is not integer"))
 			c.Abort()
 			return
 		}
-
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, e.FromString("Unexpected body"))
-			c.Abort()
-			return
-		}
 	}
 
-	var createAnswers []*ent.AnswerCreate
-	{
-		for _, answer := range req.Answers {
-			createAnswers = append(
-				createAnswers, 
-				m.Client.Answer.Create().
-					SetAnswer(answer.Answer).
-					SetCorrect(answer.Correct).
-					SetQuestionID(req.QuestionID),
-			)
-		}
-	}
-
-	_, err := m.Client.Answer.CreateBulk(createAnswers...).Save(c)
-	if ent.IsConstraintError(err) || ent.IsNotFound(err) {
-		c.JSON(http.StatusNotFound, e.FromString("Question not found"))
+	if _, err := m.Client.TheoreticalTest.Delete().Where(
+		theoreticaltest.HasSubModuleTestWith(
+			submoduletest.HasSubModuleWith(
+				submodule.ID(req.SubModuleID),
+			),
+		),
+	).Exec(c); ent.IsNotFound(err) {
+		c.JSON(http.StatusNotFound, e.FromString("Theor test not found"))
 		c.Abort()
 		return
+	} else if ent.IsConstraintError(err) {
+		log.Info(err)
 	} else if err != nil {
 		log.WithFields(
 			log.Fields{
 				"pkg":  "controllers/module",
-				"func": "AddAnswersToQestuion",
+				"func": "DeleteTheorTest",
 				"err":  err,
 			},
-		).Error("Failed to add answers to question")
-		c.JSON(http.StatusInternalServerError, e.FromString(("Failed to add answers to question")))
+		).Error("Failed delete submodule theor test")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed delete submodule theor test"))
 		c.Abort()
 		return
 	}
 
-	_, err = m.Client.Question.Query().WithAnswer().Where(question.ID(req.QuestionID)).Only(c)
-	if err != nil {
-		log.WithFields(
-			log.Fields{
-				"pkg":  "controllers/module",
-				"func": "AddAnswersToQestuion",
-				"err":  err,
-			},
-		).Error("Failed to add answers to question")
-		c.JSON(http.StatusInternalServerError, e.FromString(("Failed to add answers to question")))
-		c.Abort()
-		return
-	}
-
-	// var resp AddQuestionResp
-	// {
-		
-	// }
+	c.Status(http.StatusOK)
 }
-
-type UpdateQuestionsReq struct {
-	ID			int			`json:"-" uri:"id"`
-	Qustion		*string		`json:"question,omitempty"`
-}
-
-type UpdateQuestionReq struct {
-	ID			int			`json:"id"`
-	Qustion		*string		`json:"question,omitempty"`
-}
-
-func (m ModuleController) UpdateQuestion(c *gin.Context)

@@ -399,7 +399,7 @@ var doc = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "add questions to Theor test",
+                "description": "update Theor test",
                 "consumes": [
                     "application/json"
                 ],
@@ -409,7 +409,7 @@ var doc = `{
                 "tags": [
                     "module"
                 ],
-                "summary": "add questions to Theor test",
+                "summary": "update Theor test",
                 "parameters": [
                     {
                         "description": "Theor test info",
@@ -502,6 +502,59 @@ var doc = `{
                         "schema": {
                             "$ref": "#/definitions/module.AddTheorTestResp"
                         }
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "module not found",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "delete Theor test",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "delete Theor test",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id of submodule",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
                     },
                     "400": {
                         "description": "some user error",
@@ -1080,6 +1133,20 @@ var doc = `{
                 }
             }
         },
+        "module.UpdateAnswersReq": {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "string"
+                },
+                "correct": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "module.UpdateConfigReq": {
             "type": "object",
             "properties": {
@@ -1089,13 +1156,42 @@ var doc = `{
                 }
             }
         },
+        "module.UpdateQuestionReq": {
+            "type": "object",
+            "properties": {
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.UpdateAnswersReq"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "newAnswers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.CreateAnswerReq"
+                    }
+                },
+                "question": {
+                    "type": "string"
+                }
+            }
+        },
         "module.UpdateTheorTestReq": {
             "type": "object",
             "properties": {
-                "questions": {
+                "newQuestions": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/module.CreateQuestionReq"
+                    }
+                },
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.UpdateQuestionReq"
                     }
                 }
             }

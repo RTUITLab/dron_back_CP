@@ -51,7 +51,9 @@ func NewRouter(c *Controllers) *gin.Engine {
 			module.PUT("/submodule/:id/test/pract", c.Module.UpdateConfigToPractTest)
 			module.PUT("/submodule/:id/test/theor", c.Module.UpdateTheorTest)
 
-			
+			module.DELETE("/submodule/:id/test/theor", c.Module.DeleteTheorTest)
+
+
 		}
 	}
 

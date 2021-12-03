@@ -35,8 +35,14 @@ func (SubModuleTest) Edges() []ent.Edge {
 			Field("submodule_id").
 			Required(),
 		edge.To("TherTest", TheoreticalTest.Type).
-			Unique(),
+			Unique().
+			Annotations(
+				entsql.Annotation{OnDelete: entsql.Cascade},
+			),
 		edge.To("PractTest", PractTest.Type).
-			Unique(),
+			Unique().
+			Annotations(
+				entsql.Annotation{OnDelete: entsql.Cascade},
+			),
 	}
 }
