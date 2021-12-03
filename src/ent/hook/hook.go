@@ -126,6 +126,19 @@ func (f SubModuleTestFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return f(ctx, mv)
 }
 
+// The TaskFunc type is an adapter to allow the use of ordinary
+// function as Task mutator.
+type TaskFunc func(context.Context, *ent.TaskMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TaskFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.TaskMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TaskMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The TestFunc type is an adapter to allow the use of ordinary
 // function as Test mutator.
 type TestFunc func(context.Context, *ent.TestMutation) (ent.Value, error)
@@ -148,6 +161,32 @@ func (f TheoreticalTestFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 	mv, ok := m.(*ent.TheoreticalTestMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TheoreticalTestMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The TheoreticalTryFunc type is an adapter to allow the use of ordinary
+// function as TheoreticalTry mutator.
+type TheoreticalTryFunc func(context.Context, *ent.TheoreticalTryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TheoreticalTryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.TheoreticalTryMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TheoreticalTryMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The TryAnswerFunc type is an adapter to allow the use of ordinary
+// function as TryAnswer mutator.
+type TryAnswerFunc func(context.Context, *ent.TryAnswerMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TryAnswerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.TryAnswerMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TryAnswerMutation", m)
 	}
 	return f(ctx, mv)
 }

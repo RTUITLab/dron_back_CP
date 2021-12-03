@@ -355,6 +355,34 @@ func HasRoleWith(preds ...predicate.Role) predicate.User {
 	})
 }
 
+// HasTheoTry applies the HasEdge predicate on the "TheoTry" edge.
+func HasTheoTry() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TheoTryTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TheoTryTable, TheoTryColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTheoTryWith applies the HasEdge predicate on the "TheoTry" edge with a given conditions (other predicates).
+func HasTheoTryWith(preds ...predicate.TheoreticalTry) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TheoTryInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TheoTryTable, TheoTryColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(func(s *sql.Selector) {

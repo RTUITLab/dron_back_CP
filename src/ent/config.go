@@ -33,8 +33,11 @@ type hooks struct {
 	Role             []ent.Hook
 	SubModule        []ent.Hook
 	SubModuleTest    []ent.Hook
+	Task             []ent.Hook
 	Test             []ent.Hook
 	TheoreticalTest  []ent.Hook
+	TheoreticalTry   []ent.Hook
+	TryAnswer        []ent.Hook
 	User             []ent.Hook
 }
 

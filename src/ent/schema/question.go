@@ -37,8 +37,9 @@ func (Question) Edges() []ent.Edge {
 			Field("theorical_test_id").
 			Required(),
 		edge.To("Answer", Answer.Type).
-		Annotations(
-			entsql.Annotation{OnDelete: entsql.Cascade},
-		),
+			Annotations(
+				entsql.Annotation{OnDelete: entsql.Cascade},
+			),
+		edge.To("TryAnswer", TryAnswer.Type),
 	}
 }

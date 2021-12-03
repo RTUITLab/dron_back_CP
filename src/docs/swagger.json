@@ -1000,6 +1000,322 @@
                 }
             }
         },
+        "/v1/module/{id}/test": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "add module test\nthat can do only admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "add module test",
+                "parameters": [
+                    {
+                        "description": "ModuleTest info",
+                        "name": "moduletest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/module.AddModuleTestReq"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id of module",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/module.AddModuleTestResp"
+                        }
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "module not found",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/module/{id}/test/pract": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "update Pract test to module test\nthat can do only admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "update Pract test",
+                "parameters": [
+                    {
+                        "description": "Pract test info",
+                        "name": "theotest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/module.UpdateModuleConfigReq"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id of module",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/module.AddModulePractTestResp"
+                        }
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "module not found",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "delete Pract test",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "delete Pract test",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id of module",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "module not found",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/module/{id}/test/theor": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "update Theor test",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "update Theor test",
+                "parameters": [
+                    {
+                        "description": "Theor test info",
+                        "name": "theortest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/module.UpdateModuleTheorTestReq"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id of module",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/module.AddModuleTheorTestResp"
+                        }
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "module not found",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "delete Theor test",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "delete Theor test",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id of module",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "some user error",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "not auth",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "module not found",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal",
+                        "schema": {
+                            "$ref": "#/definitions/err.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/user": {
             "get": {
                 "security": [
@@ -1292,11 +1608,96 @@
                 }
             }
         },
+        "module.AddModuleAnswerResp": {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "string"
+                },
+                "correct": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "module.AddModuleDependecyReq": {
             "type": "object",
             "properties": {
                 "depenOn": {
                     "type": "integer"
+                }
+            }
+        },
+        "module.AddModulePractTestResp": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "module.AddModuleQuestionResp": {
+            "type": "object",
+            "properties": {
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.AddModuleAnswerResp"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "question": {
+                    "type": "string"
+                }
+            }
+        },
+        "module.AddModuleTestReq": {
+            "type": "object",
+            "properties": {
+                "practTest": {
+                    "$ref": "#/definitions/module.CreateModulePractTestReq"
+                },
+                "theoreticalTest": {
+                    "$ref": "#/definitions/module.CreateModuleTheoreticalTestReq"
+                }
+            }
+        },
+        "module.AddModuleTestResp": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "practTest": {
+                    "$ref": "#/definitions/module.AddModulePractTestResp"
+                },
+                "theoreticalTest": {
+                    "$ref": "#/definitions/module.AddModuleTheorTestResp"
+                }
+            }
+        },
+        "module.AddModuleTheorTestResp": {
+            "type": "object",
+            "properties": {
+                "duration": {
+                    "type": "integer"
+                },
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.AddModuleQuestionResp"
+                    }
                 }
             }
         },
@@ -1435,6 +1836,43 @@
                 }
             }
         },
+        "module.CreateModuleAnswerReq": {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "string"
+                },
+                "correct": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "module.CreateModulePractTestReq": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "duration": {
+                    "type": "integer"
+                }
+            }
+        },
+        "module.CreateModuleQuestionReq": {
+            "type": "object",
+            "properties": {
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.CreateModuleAnswerReq"
+                    }
+                },
+                "question": {
+                    "type": "string"
+                }
+            }
+        },
         "module.CreateModuleReq": {
             "type": "object",
             "properties": {
@@ -1451,6 +1889,20 @@
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "module.CreateModuleTheoreticalTestReq": {
+            "type": "object",
+            "properties": {
+                "duration": {
+                    "type": "integer"
+                },
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.CreateModuleQuestionReq"
+                    }
                 }
             }
         },
@@ -1562,6 +2014,75 @@
                 "config": {
                     "type": "object",
                     "additionalProperties": true
+                }
+            }
+        },
+        "module.UpdateModuleAnswersReq": {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "string"
+                },
+                "correct": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "module.UpdateModuleConfigReq": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "duration": {
+                    "type": "integer"
+                }
+            }
+        },
+        "module.UpdateModuleQuestionReq": {
+            "type": "object",
+            "properties": {
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.UpdateModuleAnswersReq"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "newAnswers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.CreateModuleAnswerReq"
+                    }
+                },
+                "question": {
+                    "type": "string"
+                }
+            }
+        },
+        "module.UpdateModuleTheorTestReq": {
+            "type": "object",
+            "properties": {
+                "duration": {
+                    "type": "integer"
+                },
+                "newQuestions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.CreateModuleQuestionReq"
+                    }
+                },
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.UpdateModuleQuestionReq"
+                    }
                 }
             }
         },

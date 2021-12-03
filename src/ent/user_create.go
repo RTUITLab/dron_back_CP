@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/role"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltry"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/user"
 )
 
@@ -49,6 +50,21 @@ func (uc *UserCreate) SetNillableRoleID(id *int) *UserCreate {
 // SetRole sets the "Role" edge to the Role entity.
 func (uc *UserCreate) SetRole(r *Role) *UserCreate {
 	return uc.SetRoleID(r.ID)
+}
+
+// AddTheoTryIDs adds the "TheoTry" edge to the TheoreticalTry entity by IDs.
+func (uc *UserCreate) AddTheoTryIDs(ids ...int) *UserCreate {
+	uc.mutation.AddTheoTryIDs(ids...)
+	return uc
+}
+
+// AddTheoTry adds the "TheoTry" edges to the TheoreticalTry entity.
+func (uc *UserCreate) AddTheoTry(t ...*TheoreticalTry) *UserCreate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uc.AddTheoTryIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -198,6 +214,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.role_user = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.TheoTryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TheoTryTable,
+			Columns: []string{user.TheoTryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: theoreticaltry.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

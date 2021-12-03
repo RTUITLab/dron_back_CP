@@ -21,6 +21,7 @@ func (PractTest) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("test_id"),
 		field.JSON("config", JSONObject{}),
+		field.Int("duration").Optional(),
 	}
 }
 
@@ -38,5 +39,7 @@ func (PractTest) Edges() []ent.Edge {
 			Unique().
 			Field("test_id").
 			Required(),
+		edge.To("Task", Task.Type).
+			Unique(),
 	}
 }

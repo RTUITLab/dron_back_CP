@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/schema"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/task"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 )
 
@@ -33,9 +34,42 @@ func (ptc *PractTestCreate) SetConfig(so schema.JSONObject) *PractTestCreate {
 	return ptc
 }
 
+// SetDuration sets the "duration" field.
+func (ptc *PractTestCreate) SetDuration(i int) *PractTestCreate {
+	ptc.mutation.SetDuration(i)
+	return ptc
+}
+
+// SetNillableDuration sets the "duration" field if the given value is not nil.
+func (ptc *PractTestCreate) SetNillableDuration(i *int) *PractTestCreate {
+	if i != nil {
+		ptc.SetDuration(*i)
+	}
+	return ptc
+}
+
 // SetTest sets the "Test" edge to the Test entity.
 func (ptc *PractTestCreate) SetTest(t *Test) *PractTestCreate {
 	return ptc.SetTestID(t.ID)
+}
+
+// SetTaskID sets the "Task" edge to the Task entity by ID.
+func (ptc *PractTestCreate) SetTaskID(id int) *PractTestCreate {
+	ptc.mutation.SetTaskID(id)
+	return ptc
+}
+
+// SetNillableTaskID sets the "Task" edge to the Task entity by ID if the given value is not nil.
+func (ptc *PractTestCreate) SetNillableTaskID(id *int) *PractTestCreate {
+	if id != nil {
+		ptc = ptc.SetTaskID(*id)
+	}
+	return ptc
+}
+
+// SetTask sets the "Task" edge to the Task entity.
+func (ptc *PractTestCreate) SetTask(t *Task) *PractTestCreate {
+	return ptc.SetTaskID(t.ID)
 }
 
 // Mutation returns the PractTestMutation object of the builder.
@@ -152,6 +186,14 @@ func (ptc *PractTestCreate) createSpec() (*PractTest, *sqlgraph.CreateSpec) {
 		})
 		_node.Config = value
 	}
+	if value, ok := ptc.mutation.Duration(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: practtest.FieldDuration,
+		})
+		_node.Duration = value
+	}
 	if nodes := ptc.mutation.TestIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -170,6 +212,25 @@ func (ptc *PractTestCreate) createSpec() (*PractTest, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.TestID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ptc.mutation.TaskIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   practtest.TaskTable,
+			Columns: []string{practtest.TaskColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: task.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

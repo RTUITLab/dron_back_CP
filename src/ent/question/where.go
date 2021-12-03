@@ -320,6 +320,34 @@ func HasAnswerWith(preds ...predicate.Answer) predicate.Question {
 	})
 }
 
+// HasTryAnswer applies the HasEdge predicate on the "TryAnswer" edge.
+func HasTryAnswer() predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TryAnswerTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TryAnswerTable, TryAnswerColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTryAnswerWith applies the HasEdge predicate on the "TryAnswer" edge with a given conditions (other predicates).
+func HasTryAnswerWith(preds ...predicate.TryAnswer) predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TryAnswerInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TryAnswerTable, TryAnswerColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Question) predicate.Question {
 	return predicate.Question(func(s *sql.Selector) {

@@ -16,6 +16,7 @@ import (
 	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltry"
 )
 
 // TheoreticalTestQuery is the builder for querying TheoreticalTest entities.
@@ -30,6 +31,7 @@ type TheoreticalTestQuery struct {
 	// eager-loading edges.
 	withTest     *TestQuery
 	withQuestion *QuestionQuery
+	withTheoTry  *TheoreticalTryQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -103,6 +105,28 @@ func (ttq *TheoreticalTestQuery) QueryQuestion() *QuestionQuery {
 			sqlgraph.From(theoreticaltest.Table, theoreticaltest.FieldID, selector),
 			sqlgraph.To(question.Table, question.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, theoreticaltest.QuestionTable, theoreticaltest.QuestionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ttq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTheoTry chains the current query on the "TheoTry" edge.
+func (ttq *TheoreticalTestQuery) QueryTheoTry() *TheoreticalTryQuery {
+	query := &TheoreticalTryQuery{config: ttq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ttq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := ttq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(theoreticaltest.Table, theoreticaltest.FieldID, selector),
+			sqlgraph.To(theoreticaltry.Table, theoreticaltry.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, theoreticaltest.TheoTryTable, theoreticaltest.TheoTryColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(ttq.driver.Dialect(), step)
 		return fromU, nil
@@ -293,6 +317,7 @@ func (ttq *TheoreticalTestQuery) Clone() *TheoreticalTestQuery {
 		predicates:   append([]predicate.TheoreticalTest{}, ttq.predicates...),
 		withTest:     ttq.withTest.Clone(),
 		withQuestion: ttq.withQuestion.Clone(),
+		withTheoTry:  ttq.withTheoTry.Clone(),
 		// clone intermediate query.
 		sql:  ttq.sql.Clone(),
 		path: ttq.path,
@@ -318,6 +343,17 @@ func (ttq *TheoreticalTestQuery) WithQuestion(opts ...func(*QuestionQuery)) *The
 		opt(query)
 	}
 	ttq.withQuestion = query
+	return ttq
+}
+
+// WithTheoTry tells the query-builder to eager-load the nodes that are connected to
+// the "TheoTry" edge. The optional arguments are used to configure the query builder of the edge.
+func (ttq *TheoreticalTestQuery) WithTheoTry(opts ...func(*TheoreticalTryQuery)) *TheoreticalTestQuery {
+	query := &TheoreticalTryQuery{config: ttq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ttq.withTheoTry = query
 	return ttq
 }
 
@@ -386,9 +422,10 @@ func (ttq *TheoreticalTestQuery) sqlAll(ctx context.Context) ([]*TheoreticalTest
 	var (
 		nodes       = []*TheoreticalTest{}
 		_spec       = ttq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			ttq.withTest != nil,
 			ttq.withQuestion != nil,
+			ttq.withTheoTry != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -459,6 +496,31 @@ func (ttq *TheoreticalTestQuery) sqlAll(ctx context.Context) ([]*TheoreticalTest
 				return nil, fmt.Errorf(`unexpected foreign-key "theorical_test_id" returned %v for node %v`, fk, n.ID)
 			}
 			node.Edges.Question = append(node.Edges.Question, n)
+		}
+	}
+
+	if query := ttq.withTheoTry; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*TheoreticalTest)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.TheoTry = []*TheoreticalTry{}
+		}
+		query.Where(predicate.TheoreticalTry(func(s *sql.Selector) {
+			s.Where(sql.InValues(theoreticaltest.TheoTryColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.TheoreticalTestID
+			node, ok := nodeids[fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "theoretical_test_id" returned %v for node %v`, fk, n.ID)
+			}
+			node.Edges.TheoTry = append(node.Edges.TheoTry, n)
 		}
 	}
 

@@ -13,6 +13,7 @@ import (
 	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/predicate"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/schema"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/task"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 )
 
@@ -41,9 +42,55 @@ func (ptu *PractTestUpdate) SetConfig(so schema.JSONObject) *PractTestUpdate {
 	return ptu
 }
 
+// SetDuration sets the "duration" field.
+func (ptu *PractTestUpdate) SetDuration(i int) *PractTestUpdate {
+	ptu.mutation.ResetDuration()
+	ptu.mutation.SetDuration(i)
+	return ptu
+}
+
+// SetNillableDuration sets the "duration" field if the given value is not nil.
+func (ptu *PractTestUpdate) SetNillableDuration(i *int) *PractTestUpdate {
+	if i != nil {
+		ptu.SetDuration(*i)
+	}
+	return ptu
+}
+
+// AddDuration adds i to the "duration" field.
+func (ptu *PractTestUpdate) AddDuration(i int) *PractTestUpdate {
+	ptu.mutation.AddDuration(i)
+	return ptu
+}
+
+// ClearDuration clears the value of the "duration" field.
+func (ptu *PractTestUpdate) ClearDuration() *PractTestUpdate {
+	ptu.mutation.ClearDuration()
+	return ptu
+}
+
 // SetTest sets the "Test" edge to the Test entity.
 func (ptu *PractTestUpdate) SetTest(t *Test) *PractTestUpdate {
 	return ptu.SetTestID(t.ID)
+}
+
+// SetTaskID sets the "Task" edge to the Task entity by ID.
+func (ptu *PractTestUpdate) SetTaskID(id int) *PractTestUpdate {
+	ptu.mutation.SetTaskID(id)
+	return ptu
+}
+
+// SetNillableTaskID sets the "Task" edge to the Task entity by ID if the given value is not nil.
+func (ptu *PractTestUpdate) SetNillableTaskID(id *int) *PractTestUpdate {
+	if id != nil {
+		ptu = ptu.SetTaskID(*id)
+	}
+	return ptu
+}
+
+// SetTask sets the "Task" edge to the Task entity.
+func (ptu *PractTestUpdate) SetTask(t *Task) *PractTestUpdate {
+	return ptu.SetTaskID(t.ID)
 }
 
 // Mutation returns the PractTestMutation object of the builder.
@@ -54,6 +101,12 @@ func (ptu *PractTestUpdate) Mutation() *PractTestMutation {
 // ClearTest clears the "Test" edge to the Test entity.
 func (ptu *PractTestUpdate) ClearTest() *PractTestUpdate {
 	ptu.mutation.ClearTest()
+	return ptu
+}
+
+// ClearTask clears the "Task" edge to the Task entity.
+func (ptu *PractTestUpdate) ClearTask() *PractTestUpdate {
+	ptu.mutation.ClearTask()
 	return ptu
 }
 
@@ -150,6 +203,26 @@ func (ptu *PractTestUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: practtest.FieldConfig,
 		})
 	}
+	if value, ok := ptu.mutation.Duration(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: practtest.FieldDuration,
+		})
+	}
+	if value, ok := ptu.mutation.AddedDuration(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: practtest.FieldDuration,
+		})
+	}
+	if ptu.mutation.DurationCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: practtest.FieldDuration,
+		})
+	}
 	if ptu.mutation.TestCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -177,6 +250,41 @@ func (ptu *PractTestUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: test.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ptu.mutation.TaskCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   practtest.TaskTable,
+			Columns: []string{practtest.TaskColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: task.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ptu.mutation.TaskIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   practtest.TaskTable,
+			Columns: []string{practtest.TaskColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: task.FieldID,
 				},
 			},
 		}
@@ -216,9 +324,55 @@ func (ptuo *PractTestUpdateOne) SetConfig(so schema.JSONObject) *PractTestUpdate
 	return ptuo
 }
 
+// SetDuration sets the "duration" field.
+func (ptuo *PractTestUpdateOne) SetDuration(i int) *PractTestUpdateOne {
+	ptuo.mutation.ResetDuration()
+	ptuo.mutation.SetDuration(i)
+	return ptuo
+}
+
+// SetNillableDuration sets the "duration" field if the given value is not nil.
+func (ptuo *PractTestUpdateOne) SetNillableDuration(i *int) *PractTestUpdateOne {
+	if i != nil {
+		ptuo.SetDuration(*i)
+	}
+	return ptuo
+}
+
+// AddDuration adds i to the "duration" field.
+func (ptuo *PractTestUpdateOne) AddDuration(i int) *PractTestUpdateOne {
+	ptuo.mutation.AddDuration(i)
+	return ptuo
+}
+
+// ClearDuration clears the value of the "duration" field.
+func (ptuo *PractTestUpdateOne) ClearDuration() *PractTestUpdateOne {
+	ptuo.mutation.ClearDuration()
+	return ptuo
+}
+
 // SetTest sets the "Test" edge to the Test entity.
 func (ptuo *PractTestUpdateOne) SetTest(t *Test) *PractTestUpdateOne {
 	return ptuo.SetTestID(t.ID)
+}
+
+// SetTaskID sets the "Task" edge to the Task entity by ID.
+func (ptuo *PractTestUpdateOne) SetTaskID(id int) *PractTestUpdateOne {
+	ptuo.mutation.SetTaskID(id)
+	return ptuo
+}
+
+// SetNillableTaskID sets the "Task" edge to the Task entity by ID if the given value is not nil.
+func (ptuo *PractTestUpdateOne) SetNillableTaskID(id *int) *PractTestUpdateOne {
+	if id != nil {
+		ptuo = ptuo.SetTaskID(*id)
+	}
+	return ptuo
+}
+
+// SetTask sets the "Task" edge to the Task entity.
+func (ptuo *PractTestUpdateOne) SetTask(t *Task) *PractTestUpdateOne {
+	return ptuo.SetTaskID(t.ID)
 }
 
 // Mutation returns the PractTestMutation object of the builder.
@@ -229,6 +383,12 @@ func (ptuo *PractTestUpdateOne) Mutation() *PractTestMutation {
 // ClearTest clears the "Test" edge to the Test entity.
 func (ptuo *PractTestUpdateOne) ClearTest() *PractTestUpdateOne {
 	ptuo.mutation.ClearTest()
+	return ptuo
+}
+
+// ClearTask clears the "Task" edge to the Task entity.
+func (ptuo *PractTestUpdateOne) ClearTask() *PractTestUpdateOne {
+	ptuo.mutation.ClearTask()
 	return ptuo
 }
 
@@ -349,6 +509,26 @@ func (ptuo *PractTestUpdateOne) sqlSave(ctx context.Context) (_node *PractTest, 
 			Column: practtest.FieldConfig,
 		})
 	}
+	if value, ok := ptuo.mutation.Duration(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: practtest.FieldDuration,
+		})
+	}
+	if value, ok := ptuo.mutation.AddedDuration(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: practtest.FieldDuration,
+		})
+	}
+	if ptuo.mutation.DurationCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: practtest.FieldDuration,
+		})
+	}
 	if ptuo.mutation.TestCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -376,6 +556,41 @@ func (ptuo *PractTestUpdateOne) sqlSave(ctx context.Context) (_node *PractTest, 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: test.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ptuo.mutation.TaskCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   practtest.TaskTable,
+			Columns: []string{practtest.TaskColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: task.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ptuo.mutation.TaskIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   practtest.TaskTable,
+			Columns: []string{practtest.TaskColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: task.FieldID,
 				},
 			},
 		}

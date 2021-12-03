@@ -97,6 +97,7 @@ var (
 	PractTestColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "config", Type: field.TypeJSON},
+		{Name: "duration", Type: field.TypeInt, Nullable: true},
 		{Name: "test_id", Type: field.TypeInt, Nullable: true},
 	}
 	// PractTestTable holds the schema information for the "PractTest" table.
@@ -107,7 +108,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "PractTest_Test_PractTest",
-				Columns:    []*schema.Column{PractTestColumns[2]},
+				Columns:    []*schema.Column{PractTestColumns[3]},
 				RefColumns: []*schema.Column{TestColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -191,6 +192,26 @@ var (
 			},
 		},
 	}
+	// TaskColumns holds the columns for the "Task" table.
+	TaskColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "task", Type: field.TypeString, Size: 2147483647},
+		{Name: "pract_test_id", Type: field.TypeInt, Unique: true, Nullable: true},
+	}
+	// TaskTable holds the schema information for the "Task" table.
+	TaskTable = &schema.Table{
+		Name:       "Task",
+		Columns:    TaskColumns,
+		PrimaryKey: []*schema.Column{TaskColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "Task_PractTest_Task",
+				Columns:    []*schema.Column{TaskColumns[2]},
+				RefColumns: []*schema.Column{PractTestColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// TestColumns holds the columns for the "Test" table.
 	TestColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -205,6 +226,7 @@ var (
 	// TheoreticalTestColumns holds the columns for the "TheoreticalTest" table.
 	TheoreticalTestColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "duration", Type: field.TypeInt, Nullable: true},
 		{Name: "test_id", Type: field.TypeInt, Nullable: true},
 	}
 	// TheoreticalTestTable holds the schema information for the "TheoreticalTest" table.
@@ -215,9 +237,65 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "TheoreticalTest_Test_TherTest",
-				Columns:    []*schema.Column{TheoreticalTestColumns[1]},
+				Columns:    []*schema.Column{TheoreticalTestColumns[2]},
 				RefColumns: []*schema.Column{TestColumns[0]},
 				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// TheoreticalTryColumns holds the columns for the "TheoreticalTry" table.
+	TheoreticalTryColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "start", Type: field.TypeTime},
+		{Name: "end", Type: field.TypeTime, Nullable: true},
+		{Name: "theoretical_test_id", Type: field.TypeInt, Nullable: true},
+		{Name: "user_id", Type: field.TypeInt, Nullable: true},
+	}
+	// TheoreticalTryTable holds the schema information for the "TheoreticalTry" table.
+	TheoreticalTryTable = &schema.Table{
+		Name:       "TheoreticalTry",
+		Columns:    TheoreticalTryColumns,
+		PrimaryKey: []*schema.Column{TheoreticalTryColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "TheoreticalTry_TheoreticalTest_TheoTry",
+				Columns:    []*schema.Column{TheoreticalTryColumns[3]},
+				RefColumns: []*schema.Column{TheoreticalTestColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "TheoreticalTry_User_TheoTry",
+				Columns:    []*schema.Column{TheoreticalTryColumns[4]},
+				RefColumns: []*schema.Column{UserColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// TryAnswerColumns holds the columns for the "TryAnswer" table.
+	TryAnswerColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "asnwer", Type: field.TypeString, Size: 2147483647},
+		{Name: "correct", Type: field.TypeBool, Nullable: true},
+		{Name: "question_id", Type: field.TypeInt, Nullable: true},
+		{Name: "try_id", Type: field.TypeInt, Nullable: true},
+	}
+	// TryAnswerTable holds the schema information for the "TryAnswer" table.
+	TryAnswerTable = &schema.Table{
+		Name:       "TryAnswer",
+		Columns:    TryAnswerColumns,
+		PrimaryKey: []*schema.Column{TryAnswerColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "TryAnswer_Question_TryAnswer",
+				Columns:    []*schema.Column{TryAnswerColumns[3]},
+				RefColumns: []*schema.Column{QuestionColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "TryAnswer_TheoreticalTry_TryAnswer",
+				Columns:    []*schema.Column{TryAnswerColumns[4]},
+				RefColumns: []*schema.Column{TheoreticalTryColumns[0]},
+				OnDelete:   schema.SetNull,
 			},
 		},
 	}
@@ -253,8 +331,11 @@ var (
 		RoleTable,
 		SubModuleTable,
 		SubModuleTestTable,
+		TaskTable,
 		TestTable,
 		TheoreticalTestTable,
+		TheoreticalTryTable,
+		TryAnswerTable,
 		UserTable,
 	}
 )
@@ -294,12 +375,26 @@ func init() {
 	SubModuleTestTable.Annotation = &entsql.Annotation{
 		Table: "SubModuleTest",
 	}
+	TaskTable.ForeignKeys[0].RefTable = PractTestTable
+	TaskTable.Annotation = &entsql.Annotation{
+		Table: "Task",
+	}
 	TestTable.Annotation = &entsql.Annotation{
 		Table: "Test",
 	}
 	TheoreticalTestTable.ForeignKeys[0].RefTable = TestTable
 	TheoreticalTestTable.Annotation = &entsql.Annotation{
 		Table: "TheoreticalTest",
+	}
+	TheoreticalTryTable.ForeignKeys[0].RefTable = TheoreticalTestTable
+	TheoreticalTryTable.ForeignKeys[1].RefTable = UserTable
+	TheoreticalTryTable.Annotation = &entsql.Annotation{
+		Table: "TheoreticalTry",
+	}
+	TryAnswerTable.ForeignKeys[0].RefTable = QuestionTable
+	TryAnswerTable.ForeignKeys[1].RefTable = TheoreticalTryTable
+	TryAnswerTable.Annotation = &entsql.Annotation{
+		Table: "TryAnswer",
 	}
 	UserTable.ForeignKeys[0].RefTable = RoleTable
 	UserTable.Annotation = &entsql.Annotation{

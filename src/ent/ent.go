@@ -17,8 +17,11 @@ import (
 	"github.com/0B1t322/CP-Rosseti-Back/ent/role"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/task"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltry"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/tryanswer"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/user"
 )
 
@@ -49,8 +52,11 @@ func columnChecker(table string) func(string) error {
 		role.Table:             role.ValidColumn,
 		submodule.Table:        submodule.ValidColumn,
 		submoduletest.Table:    submoduletest.ValidColumn,
+		task.Table:             task.ValidColumn,
 		test.Table:             test.ValidColumn,
 		theoreticaltest.Table:  theoreticaltest.ValidColumn,
+		theoreticaltry.Table:   theoreticaltry.ValidColumn,
+		tryanswer.Table:        tryanswer.ValidColumn,
 		user.Table:             user.ValidColumn,
 	}
 	check, ok := checks[table]

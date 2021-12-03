@@ -33,10 +33,65 @@ definitions:
       id:
         type: integer
     type: object
+  module.AddModuleAnswerResp:
+    properties:
+      answer:
+        type: string
+      correct:
+        type: boolean
+      id:
+        type: integer
+    type: object
   module.AddModuleDependecyReq:
     properties:
       depenOn:
         type: integer
+    type: object
+  module.AddModulePractTestResp:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+      duration:
+        type: integer
+      id:
+        type: integer
+    type: object
+  module.AddModuleQuestionResp:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/module.AddModuleAnswerResp'
+        type: array
+      id:
+        type: integer
+      question:
+        type: string
+    type: object
+  module.AddModuleTestReq:
+    properties:
+      practTest:
+        $ref: '#/definitions/module.CreateModulePractTestReq'
+      theoreticalTest:
+        $ref: '#/definitions/module.CreateModuleTheoreticalTestReq'
+    type: object
+  module.AddModuleTestResp:
+    properties:
+      id:
+        type: integer
+      practTest:
+        $ref: '#/definitions/module.AddModulePractTestResp'
+      theoreticalTest:
+        $ref: '#/definitions/module.AddModuleTheorTestResp'
+    type: object
+  module.AddModuleTheorTestResp:
+    properties:
+      duration:
+        type: integer
+      questions:
+        items:
+          $ref: '#/definitions/module.AddModuleQuestionResp'
+        type: array
     type: object
   module.AddPractTestReq:
     properties:
@@ -125,6 +180,30 @@ definitions:
       correct:
         type: boolean
     type: object
+  module.CreateModuleAnswerReq:
+    properties:
+      answer:
+        type: string
+      correct:
+        type: boolean
+    type: object
+  module.CreateModulePractTestReq:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+      duration:
+        type: integer
+    type: object
+  module.CreateModuleQuestionReq:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/module.CreateModuleAnswerReq'
+        type: array
+      question:
+        type: string
+    type: object
   module.CreateModuleReq:
     properties:
       name:
@@ -136,6 +215,15 @@ definitions:
         type: integer
       name:
         type: string
+    type: object
+  module.CreateModuleTheoreticalTestReq:
+    properties:
+      duration:
+        type: integer
+      questions:
+        items:
+          $ref: '#/definitions/module.CreateModuleQuestionReq'
+        type: array
     type: object
   module.CreatePractTestReq:
     properties:
@@ -208,6 +296,51 @@ definitions:
       config:
         additionalProperties: true
         type: object
+    type: object
+  module.UpdateModuleAnswersReq:
+    properties:
+      answer:
+        type: string
+      correct:
+        type: boolean
+      id:
+        type: integer
+    type: object
+  module.UpdateModuleConfigReq:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+      duration:
+        type: integer
+    type: object
+  module.UpdateModuleQuestionReq:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/module.UpdateModuleAnswersReq'
+        type: array
+      id:
+        type: integer
+      newAnswers:
+        items:
+          $ref: '#/definitions/module.CreateModuleAnswerReq'
+        type: array
+      question:
+        type: string
+    type: object
+  module.UpdateModuleTheorTestReq:
+    properties:
+      duration:
+        type: integer
+      newQuestions:
+        items:
+          $ref: '#/definitions/module.CreateModuleQuestionReq'
+        type: array
+      questions:
+        items:
+          $ref: '#/definitions/module.UpdateModuleQuestionReq'
+        type: array
     type: object
   module.UpdateQuestionReq:
     properties:
@@ -591,6 +724,213 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: add submodule
+      tags:
+      - module
+  /v1/module/{id}/test:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        add module test
+        that can do only admin
+      parameters:
+      - description: ModuleTest info
+        in: body
+        name: moduletest
+        required: true
+        schema:
+          $ref: '#/definitions/module.AddModuleTestReq'
+      - description: id of module
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/module.AddModuleTestResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: add module test
+      tags:
+      - module
+  /v1/module/{id}/test/pract:
+    delete:
+      description: delete Pract test
+      parameters:
+      - description: id of module
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: delete Pract test
+      tags:
+      - module
+    put:
+      consumes:
+      - application/json
+      description: |-
+        update Pract test to module test
+        that can do only admin
+      parameters:
+      - description: Pract test info
+        in: body
+        name: theotest
+        required: true
+        schema:
+          $ref: '#/definitions/module.UpdateModuleConfigReq'
+      - description: id of module
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/module.AddModulePractTestResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: update Pract test
+      tags:
+      - module
+  /v1/module/{id}/test/theor:
+    delete:
+      description: delete Theor test
+      parameters:
+      - description: id of module
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: delete Theor test
+      tags:
+      - module
+    put:
+      consumes:
+      - application/json
+      description: update Theor test
+      parameters:
+      - description: Theor test info
+        in: body
+        name: theortest
+        required: true
+        schema:
+          $ref: '#/definitions/module.UpdateModuleTheorTestReq'
+      - description: id of module
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/module.AddModuleTheorTestResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: update Theor test
       tags:
       - module
   /v1/module/submodule/{id}:

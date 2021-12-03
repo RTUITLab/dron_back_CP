@@ -15,6 +15,8 @@ const (
 	EdgeTheoreticalTest = "TheoreticalTest"
 	// EdgeAnswer holds the string denoting the answer edge name in mutations.
 	EdgeAnswer = "Answer"
+	// EdgeTryAnswer holds the string denoting the tryanswer edge name in mutations.
+	EdgeTryAnswer = "TryAnswer"
 	// Table holds the table name of the question in the database.
 	Table = "Question"
 	// TheoreticalTestTable is the table that holds the TheoreticalTest relation/edge.
@@ -31,6 +33,13 @@ const (
 	AnswerInverseTable = "answers"
 	// AnswerColumn is the table column denoting the Answer relation/edge.
 	AnswerColumn = "question_id"
+	// TryAnswerTable is the table that holds the TryAnswer relation/edge.
+	TryAnswerTable = "TryAnswer"
+	// TryAnswerInverseTable is the table name for the TryAnswer entity.
+	// It exists in this package in order to avoid circular dependency with the "tryanswer" package.
+	TryAnswerInverseTable = "TryAnswer"
+	// TryAnswerColumn is the table column denoting the TryAnswer relation/edge.
+	TryAnswerColumn = "question_id"
 )
 
 // Columns holds all SQL columns for question fields.

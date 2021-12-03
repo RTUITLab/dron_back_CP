@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/schema"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/task"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 )
 
@@ -22,6 +23,8 @@ type PractTest struct {
 	TestID int `json:"test_id,omitempty"`
 	// Config holds the value of the "config" field.
 	Config schema.JSONObject `json:"config,omitempty"`
+	// Duration holds the value of the "duration" field.
+	Duration int `json:"duration,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PractTestQuery when eager-loading is set.
 	Edges PractTestEdges `json:"edges"`
@@ -31,9 +34,11 @@ type PractTest struct {
 type PractTestEdges struct {
 	// Test holds the value of the Test edge.
 	Test *Test `json:"Test,omitempty"`
+	// Task holds the value of the Task edge.
+	Task *Task `json:"Task,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // TestOrErr returns the Test value or an error if the edge
@@ -50,6 +55,20 @@ func (e PractTestEdges) TestOrErr() (*Test, error) {
 	return nil, &NotLoadedError{edge: "Test"}
 }
 
+// TaskOrErr returns the Task value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PractTestEdges) TaskOrErr() (*Task, error) {
+	if e.loadedTypes[1] {
+		if e.Task == nil {
+			// The edge Task was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: task.Label}
+		}
+		return e.Task, nil
+	}
+	return nil, &NotLoadedError{edge: "Task"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*PractTest) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
@@ -57,7 +76,7 @@ func (*PractTest) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case practtest.FieldConfig:
 			values[i] = new([]byte)
-		case practtest.FieldID, practtest.FieldTestID:
+		case practtest.FieldID, practtest.FieldTestID, practtest.FieldDuration:
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type PractTest", columns[i])
@@ -94,6 +113,12 @@ func (pt *PractTest) assignValues(columns []string, values []interface{}) error 
 					return fmt.Errorf("unmarshal field config: %w", err)
 				}
 			}
+		case practtest.FieldDuration:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field duration", values[i])
+			} else if value.Valid {
+				pt.Duration = int(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -102,6 +127,11 @@ func (pt *PractTest) assignValues(columns []string, values []interface{}) error 
 // QueryTest queries the "Test" edge of the PractTest entity.
 func (pt *PractTest) QueryTest() *TestQuery {
 	return (&PractTestClient{config: pt.config}).QueryTest(pt)
+}
+
+// QueryTask queries the "Task" edge of the PractTest entity.
+func (pt *PractTest) QueryTask() *TaskQuery {
+	return (&PractTestClient{config: pt.config}).QueryTask(pt)
 }
 
 // Update returns a builder for updating this PractTest.
@@ -131,6 +161,8 @@ func (pt *PractTest) String() string {
 	builder.WriteString(fmt.Sprintf("%v", pt.TestID))
 	builder.WriteString(", config=")
 	builder.WriteString(fmt.Sprintf("%v", pt.Config))
+	builder.WriteString(", duration=")
+	builder.WriteString(fmt.Sprintf("%v", pt.Duration))
 	builder.WriteByte(')')
 	return builder.String()
 }

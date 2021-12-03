@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -13,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/predicate"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/task"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 )
 
@@ -27,6 +29,7 @@ type PractTestQuery struct {
 	predicates []predicate.PractTest
 	// eager-loading edges.
 	withTest *TestQuery
+	withTask *TaskQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -78,6 +81,28 @@ func (ptq *PractTestQuery) QueryTest() *TestQuery {
 			sqlgraph.From(practtest.Table, practtest.FieldID, selector),
 			sqlgraph.To(test.Table, test.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, practtest.TestTable, practtest.TestColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTask chains the current query on the "Task" edge.
+func (ptq *PractTestQuery) QueryTask() *TaskQuery {
+	query := &TaskQuery{config: ptq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := ptq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(practtest.Table, practtest.FieldID, selector),
+			sqlgraph.To(task.Table, task.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, practtest.TaskTable, practtest.TaskColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
 		return fromU, nil
@@ -267,6 +292,7 @@ func (ptq *PractTestQuery) Clone() *PractTestQuery {
 		order:      append([]OrderFunc{}, ptq.order...),
 		predicates: append([]predicate.PractTest{}, ptq.predicates...),
 		withTest:   ptq.withTest.Clone(),
+		withTask:   ptq.withTask.Clone(),
 		// clone intermediate query.
 		sql:  ptq.sql.Clone(),
 		path: ptq.path,
@@ -281,6 +307,17 @@ func (ptq *PractTestQuery) WithTest(opts ...func(*TestQuery)) *PractTestQuery {
 		opt(query)
 	}
 	ptq.withTest = query
+	return ptq
+}
+
+// WithTask tells the query-builder to eager-load the nodes that are connected to
+// the "Task" edge. The optional arguments are used to configure the query builder of the edge.
+func (ptq *PractTestQuery) WithTask(opts ...func(*TaskQuery)) *PractTestQuery {
+	query := &TaskQuery{config: ptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ptq.withTask = query
 	return ptq
 }
 
@@ -349,8 +386,9 @@ func (ptq *PractTestQuery) sqlAll(ctx context.Context) ([]*PractTest, error) {
 	var (
 		nodes       = []*PractTest{}
 		_spec       = ptq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			ptq.withTest != nil,
+			ptq.withTask != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -396,6 +434,30 @@ func (ptq *PractTestQuery) sqlAll(ctx context.Context) ([]*PractTest, error) {
 			for i := range nodes {
 				nodes[i].Edges.Test = n
 			}
+		}
+	}
+
+	if query := ptq.withTask; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*PractTest)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.Where(predicate.Task(func(s *sql.Selector) {
+			s.Where(sql.InValues(practtest.TaskColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.PractTestID
+			node, ok := nodeids[fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "pract_test_id" returned %v for node %v`, fk, n.ID)
+			}
+			node.Edges.Task = n
 		}
 	}
 

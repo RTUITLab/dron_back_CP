@@ -2,9 +2,9 @@ package server
 
 import (
 	"github.com/0B1t322/CP-Rosseti-Back/controllers/auth"
+	"github.com/0B1t322/CP-Rosseti-Back/controllers/module"
 	"github.com/0B1t322/CP-Rosseti-Back/controllers/role"
 	"github.com/0B1t322/CP-Rosseti-Back/controllers/user"
-	"github.com/0B1t322/CP-Rosseti-Back/controllers/module"
 	_ "github.com/0B1t322/CP-Rosseti-Back/docs"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"     // swagger embed files
@@ -12,10 +12,10 @@ import (
 )
 
 type Controllers struct {
-	User	*user.UserController
-	Role	*role.RoleController
-	Auth	*auth.AuthController
-	Module	*module.ModuleController
+	User   *user.UserController
+	Role   *role.RoleController
+	Auth   *auth.AuthController
+	Module *module.ModuleController
 }
 
 func NewRouter(c *Controllers) *gin.Engine {
@@ -50,15 +50,19 @@ func NewRouter(c *Controllers) *gin.Engine {
 			module.DELETE("/:id/dependecy", c.Module.HTTPDeleteModuleDependecy)
 			module.POST("/:id/submodule", c.Module.AddSubModule)
 			module.POST("/submodule/:id/test", c.Module.AddSubModuleTest)
+			module.POST("/:id/test", c.Module.AddModuleTest)
 			module.POST("/submodule/:id/test/theor", c.Module.AddTheorTest)
 			module.POST("/submodule/:id/test/pract", c.Module.AddPractTest)
 			module.PUT("/submodule/:id/test/pract", c.Module.UpdateConfigToPractTest)
+			module.PUT("/:id/test/pract", c.Module.UpdateModuleConfigToPractTest)
 			module.PUT("/submodule/:id/test/theor", c.Module.UpdateTheorTest)
+			module.PUT("/:id/test/theor", c.Module.UpdateModuleTheorTest)
 
 			module.DELETE("/submodule/:id/test/theor", c.Module.DeleteTheorTest)
 			module.DELETE("/submodule/:id/test/pract", c.Module.DeletePractTest)
+			module.DELETE("/:id/test/theor", c.Module.DeleteModuleTheorTest)
+			module.DELETE("/:id/test/pract", c.Module.DeleteModulePractTest)
 			module.GET("/submodule/:id", c.Module.GetSubModule)
-
 
 		}
 	}

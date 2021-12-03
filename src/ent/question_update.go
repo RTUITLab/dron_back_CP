@@ -14,6 +14,7 @@ import (
 	"github.com/0B1t322/CP-Rosseti-Back/ent/predicate"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/tryanswer"
 )
 
 // QuestionUpdate is the builder for updating Question entities.
@@ -67,6 +68,21 @@ func (qu *QuestionUpdate) AddAnswer(a ...*Answer) *QuestionUpdate {
 	return qu.AddAnswerIDs(ids...)
 }
 
+// AddTryAnswerIDs adds the "TryAnswer" edge to the TryAnswer entity by IDs.
+func (qu *QuestionUpdate) AddTryAnswerIDs(ids ...int) *QuestionUpdate {
+	qu.mutation.AddTryAnswerIDs(ids...)
+	return qu
+}
+
+// AddTryAnswer adds the "TryAnswer" edges to the TryAnswer entity.
+func (qu *QuestionUpdate) AddTryAnswer(t ...*TryAnswer) *QuestionUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return qu.AddTryAnswerIDs(ids...)
+}
+
 // Mutation returns the QuestionMutation object of the builder.
 func (qu *QuestionUpdate) Mutation() *QuestionMutation {
 	return qu.mutation
@@ -97,6 +113,27 @@ func (qu *QuestionUpdate) RemoveAnswer(a ...*Answer) *QuestionUpdate {
 		ids[i] = a[i].ID
 	}
 	return qu.RemoveAnswerIDs(ids...)
+}
+
+// ClearTryAnswer clears all "TryAnswer" edges to the TryAnswer entity.
+func (qu *QuestionUpdate) ClearTryAnswer() *QuestionUpdate {
+	qu.mutation.ClearTryAnswer()
+	return qu
+}
+
+// RemoveTryAnswerIDs removes the "TryAnswer" edge to TryAnswer entities by IDs.
+func (qu *QuestionUpdate) RemoveTryAnswerIDs(ids ...int) *QuestionUpdate {
+	qu.mutation.RemoveTryAnswerIDs(ids...)
+	return qu
+}
+
+// RemoveTryAnswer removes "TryAnswer" edges to TryAnswer entities.
+func (qu *QuestionUpdate) RemoveTryAnswer(t ...*TryAnswer) *QuestionUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return qu.RemoveTryAnswerIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -281,6 +318,60 @@ func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if qu.mutation.TryAnswerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   question.TryAnswerTable,
+			Columns: []string{question.TryAnswerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: tryanswer.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := qu.mutation.RemovedTryAnswerIDs(); len(nodes) > 0 && !qu.mutation.TryAnswerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   question.TryAnswerTable,
+			Columns: []string{question.TryAnswerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: tryanswer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := qu.mutation.TryAnswerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   question.TryAnswerTable,
+			Columns: []string{question.TryAnswerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: tryanswer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, qu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{question.Label}
@@ -338,6 +429,21 @@ func (quo *QuestionUpdateOne) AddAnswer(a ...*Answer) *QuestionUpdateOne {
 	return quo.AddAnswerIDs(ids...)
 }
 
+// AddTryAnswerIDs adds the "TryAnswer" edge to the TryAnswer entity by IDs.
+func (quo *QuestionUpdateOne) AddTryAnswerIDs(ids ...int) *QuestionUpdateOne {
+	quo.mutation.AddTryAnswerIDs(ids...)
+	return quo
+}
+
+// AddTryAnswer adds the "TryAnswer" edges to the TryAnswer entity.
+func (quo *QuestionUpdateOne) AddTryAnswer(t ...*TryAnswer) *QuestionUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return quo.AddTryAnswerIDs(ids...)
+}
+
 // Mutation returns the QuestionMutation object of the builder.
 func (quo *QuestionUpdateOne) Mutation() *QuestionMutation {
 	return quo.mutation
@@ -368,6 +474,27 @@ func (quo *QuestionUpdateOne) RemoveAnswer(a ...*Answer) *QuestionUpdateOne {
 		ids[i] = a[i].ID
 	}
 	return quo.RemoveAnswerIDs(ids...)
+}
+
+// ClearTryAnswer clears all "TryAnswer" edges to the TryAnswer entity.
+func (quo *QuestionUpdateOne) ClearTryAnswer() *QuestionUpdateOne {
+	quo.mutation.ClearTryAnswer()
+	return quo
+}
+
+// RemoveTryAnswerIDs removes the "TryAnswer" edge to TryAnswer entities by IDs.
+func (quo *QuestionUpdateOne) RemoveTryAnswerIDs(ids ...int) *QuestionUpdateOne {
+	quo.mutation.RemoveTryAnswerIDs(ids...)
+	return quo
+}
+
+// RemoveTryAnswer removes "TryAnswer" edges to TryAnswer entities.
+func (quo *QuestionUpdateOne) RemoveTryAnswer(t ...*TryAnswer) *QuestionUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return quo.RemoveTryAnswerIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -568,6 +695,60 @@ func (quo *QuestionUpdateOne) sqlSave(ctx context.Context) (_node *Question, err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: answer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if quo.mutation.TryAnswerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   question.TryAnswerTable,
+			Columns: []string{question.TryAnswerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: tryanswer.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := quo.mutation.RemovedTryAnswerIDs(); len(nodes) > 0 && !quo.mutation.TryAnswerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   question.TryAnswerTable,
+			Columns: []string{question.TryAnswerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: tryanswer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := quo.mutation.TryAnswerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   question.TryAnswerTable,
+			Columns: []string{question.TryAnswerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: tryanswer.FieldID,
 				},
 			},
 		}

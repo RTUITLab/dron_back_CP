@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/0B1t322/CP-Rosseti-Back/ent"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/module"
@@ -946,6 +947,91 @@ func (m ModuleController) UpdateConfigToPractTest(c *gin.Context) {
 	c.JSON(http.StatusOK, AddPractTestResp{ID: practTestID, Config: req.Config})
 }
 
+type UpdateModuleConfigReq struct {
+	ModuleID int                    `json:"-" uri:"id"`
+	Config   map[string]interface{} `json:"config"`
+	Duration *int64                 `json:"duration"`
+}
+
+// UpdateConfigToPractTest
+//
+// @Tags module
+//
+// @Summary update Pract test
+//
+// @Description update Pract test to module test
+//
+// @Description that can do only admin
+//
+// @Router /v1/module/{id}/test/pract [put]
+//
+// @Security ApiKeyAuth
+//
+// @Param theotest body module.UpdateModuleConfigReq true "Pract test info"
+//
+// @Param id path integer true "id of module"
+//
+// @Accept json
+//
+// @Produce json
+//
+// @Success 200 {object} module.AddModulePractTestResp
+//
+// @Failure 400 {object} e.Error "some user error"
+//
+// @Failure 404 {object} e.Error "module not found"
+//
+// @Failure 500 {object} e.Error "internal"
+//
+// @Failure 401 {object} e.Error "not auth"
+func (m ModuleController) UpdateModuleConfigToPractTest(c *gin.Context) {
+	var req UpdateModuleConfigReq
+	{
+		if err := c.ShouldBindUri(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("ID is not integer"))
+			c.Abort()
+			return
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("Unexpected body"))
+			c.Abort()
+			return
+		}
+	}
+
+	practTestID, err := m.Client.PractTest.Query().Where(
+		practtest.HasTestWith(
+			test.HasModuleTestWith(
+				moduletest.HasModuleWith(
+					module.ID(req.ModuleID),
+				),
+			),
+		),
+	).OnlyID(c)
+
+	if ent.IsNotFound(err) || ent.IsConstraintError(err) {
+		c.JSON(http.StatusNotFound, e.FromString("Pract test not found"))
+		c.Abort()
+		return
+	}
+
+	if err := m.Client.PractTest.UpdateOneID(practTestID).SetConfig(req.Config).Exec(c); err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "UpdateConfigToPractTest",
+				"err":  err,
+			},
+		).Error("Failed add submodule test")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed to update submodule pract test"))
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, AddPractTestResp{ID: practTestID, Config: req.Config})
+}
+
 type UpdateTheorTestReq struct {
 	SubModuleID  int                 `json:"-" uri:"id"`
 	Questions    []UpdateQuestionReq `json:"questions"`
@@ -1151,6 +1237,216 @@ func (m ModuleController) UpdateTheorTest(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+type UpdateModuleTheorTestReq struct {
+	ModuleID     int                       `json:"-" uri:"id"`
+	Duration     *int64                    `json:"duration"`
+	Questions    []UpdateModuleQuestionReq `json:"questions"`
+	NewQuestions []CreateModuleQuestionReq `json:"newQuestions,omitempty"`
+}
+
+type UpdateModuleQuestionReq struct {
+	ID         int                      `json:"id"`
+	Question   *string                  `json:"question,omitempty"`
+	Answers    []UpdateModuleAnswersReq `json:"answers,omitempty"`
+	NewAnswers []CreateModuleAnswerReq  `json:"newAnswers,omitempty"`
+	// DeleteAnswers []int              `json:"deleteAnswers,omitempty"`
+}
+
+type UpdateModuleAnswersReq struct {
+	ID      int     `json:"id"`
+	Answer  *string `json:"answer"`
+	Correct *bool   `json:"correct"`
+}
+
+// UpdateModuleTheorTest
+//
+// @Tags module
+//
+// @Summary update Theor test
+//
+// @Description update Theor test
+//
+// @Router /v1/module/{id}/test/theor [put]
+//
+// @Security ApiKeyAuth
+//
+// @Param theortest body module.UpdateModuleTheorTestReq true "Theor test info"
+//
+// @Param id path integer true "id of module"
+//
+// @Accept json
+//
+// @Produce json
+//
+// @Success 200 {object} module.AddModuleTheorTestResp
+//
+// @Failure 400 {object} e.Error "some user error"
+//
+// @Failure 404 {object} e.Error "module not found"
+//
+// @Failure 500 {object} e.Error "internal"
+//
+// @Failure 401 {object} e.Error "not auth"
+func (m ModuleController) UpdateModuleTheorTest(c *gin.Context) {
+	var req UpdateModuleTheorTestReq
+	{
+		if err := c.ShouldBindUri(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("ID is not integer"))
+			c.Abort()
+			return
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("Unexpected body"))
+			c.Abort()
+			return
+		}
+	}
+
+	theorTestID, err := m.Client.TheoreticalTest.Query().Where(
+		theoreticaltest.HasTestWith(
+			test.HasModuleTestWith(
+				moduletest.HasModuleWith(
+					module.ID(req.ModuleID),
+				),
+			),
+		),
+	).OnlyID(c)
+	if ent.IsNotFound(err) || ent.IsConstraintError(err) {
+		c.JSON(http.StatusNotFound, e.FromString("Theor test not found"))
+		c.Abort()
+		return
+	}
+
+	if req.Duration != nil {
+		m.Client.TheoreticalTest.UpdateOneID(theorTestID).SetDuration(int(*req.Duration)).Exec(c)
+	}
+
+	for _, question := range req.NewQuestions {
+		createdQuestion, err := m.Client.Question.Create().
+			SetTheoreticalTestID(theorTestID).
+			SetQuestion(question.Question).
+			Save(c)
+		if err != nil {
+			log.WithFields(
+				log.Fields{
+					"pkg":  "controllers/module",
+					"func": "UpdateTheorTest",
+					"err":  err,
+				},
+			).Error("Failed update submodule theor test")
+			c.JSON(http.StatusInternalServerError, e.FromString("Failed update submodule theor test"))
+			c.Abort()
+			return
+		}
+
+		for _, answer := range question.Answers {
+			_, err := m.Client.Answer.Create().
+				SetAnswer(answer.Answer).
+				SetCorrect(answer.Correct).
+				SetQuestuion(createdQuestion).
+				Save(c)
+			if err != nil {
+				log.WithFields(
+					log.Fields{
+						"pkg":  "controllers/module",
+						"func": "UpdateTheorTest",
+						"err":  err,
+					},
+				).Error("Failed update submodule theor test")
+				c.JSON(http.StatusInternalServerError, e.FromString("Failed update submodule theor test"))
+				c.Abort()
+				return
+			}
+		}
+	}
+
+	for _, question := range req.Questions {
+		qustuinBuilder := m.Client.Question.UpdateOneID(question.ID)
+		if question.Question != nil {
+			qustuinBuilder.SetQuestion(*question.Question)
+		}
+		qustuinBuilder.Exec(c)
+
+		for _, answer := range question.Answers {
+			answerBuilder := m.Client.Answer.UpdateOneID(answer.ID)
+			if answer.Answer != nil {
+				answerBuilder.SetAnswer(*answer.Answer)
+			}
+			if answer.Correct != nil {
+				answerBuilder.SetCorrect(*answer.Correct)
+			}
+			answerBuilder.Exec(c)
+		}
+
+		for _, answer := range question.NewAnswers {
+			m.Client.Answer.Create().
+				SetAnswer(answer.Answer).
+				SetCorrect(answer.Correct).
+				SetQuestuionID(question.ID).
+				Save(c)
+		}
+
+	}
+
+	theorTest, err := m.Client.TheoreticalTest.Query().
+		WithQuestion(
+			func(qq *ent.QuestionQuery) {
+				qq.WithAnswer()
+			},
+		).Where(theoreticaltest.ID(theorTestID)).Only(c)
+	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "UpdateTheorTest",
+				"err":  err,
+			},
+		).Error("Failed update submodule theor test")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed update submodule theor test"))
+		c.Abort()
+		return
+	}
+
+	var resp AddModuleTheorTestResp
+	{
+		theoTest := AddModuleTheorTestResp{}
+
+		var questions []AddModuleQuestionResp
+		{
+			for _, question := range theorTest.Edges.Question {
+				var answers []AddModuleAnswerResp
+				{
+					for _, answer := range question.Edges.Answer {
+						answers = append(
+							answers,
+							AddModuleAnswerResp{
+								ID:      answer.ID,
+								Answer:  answer.Answer,
+								Correct: &answer.Correct,
+							},
+						)
+					}
+				}
+
+				questions = append(
+					questions,
+					AddModuleQuestionResp{
+						ID:       question.ID,
+						Question: question.Question,
+						Answers:  answers,
+					},
+				)
+			}
+		}
+		theoTest.Questions = questions
+		theoTest.Duratione = int64(theorTest.Duration)
+		resp = theoTest
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
 type DeleteTheorTestReq struct {
 	SubModuleID int `json:"-" uri:"id"`
 }
@@ -1264,6 +1560,144 @@ func (m ModuleController) DeletePractTest(c *gin.Context) {
 			test.HasSubmoduleTestWith(
 				submoduletest.HasSubModuleWith(
 					submodule.ID(req.SubModuleID),
+				),
+			),
+		),
+	).Exec(c); ent.IsNotFound(err) {
+		c.JSON(http.StatusNotFound, e.FromString("Pract test not found"))
+		c.Abort()
+		return
+	} else if ent.IsConstraintError(err) {
+		log.Info(err)
+	} else if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "DeletePractTest",
+				"err":  err,
+			},
+		).Error("Failed delete submodule pract test")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed delete submodule pract test"))
+		c.Abort()
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+type DeleteModuleTheorTestReq struct {
+	ModuleID int `json:"-" uri:"id"`
+}
+
+// DeleteTheorTest
+//
+// @Tags module
+//
+// @Summary delete Theor test
+//
+// @Description delete Theor test
+//
+// @Router /v1/module/{id}/test/theor [delete]
+//
+// @Security ApiKeyAuth
+//
+// @Param id path integer true "id of module"
+//
+// @Produce json
+//
+// @Success 200
+//
+// @Failure 400 {object} e.Error "some user error"
+//
+// @Failure 404 {object} e.Error "module not found"
+//
+// @Failure 500 {object} e.Error "internal"
+//
+// @Failure 401 {object} e.Error "not auth"
+func (m ModuleController) DeleteModuleTheorTest(c *gin.Context) {
+	var req DeleteModuleTheorTestReq
+	{
+		if err := c.ShouldBindUri(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("ID is not integer"))
+			c.Abort()
+			return
+		}
+	}
+
+	if _, err := m.Client.TheoreticalTest.Delete().Where(
+		theoreticaltest.HasTestWith(
+			test.HasModuleTestWith(
+				moduletest.HasModuleWith(
+					module.ID(req.ModuleID),
+				),
+			),
+		),
+	).Exec(c); ent.IsNotFound(err) {
+		c.JSON(http.StatusNotFound, e.FromString("Theor test not found"))
+		c.Abort()
+		return
+	} else if ent.IsConstraintError(err) {
+		log.Info(err)
+	} else if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "DeleteTheorTest",
+				"err":  err,
+			},
+		).Error("Failed delete submodule theor test")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed delete submodule theor test"))
+		c.Abort()
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+type DeleteModulePractTestReq struct {
+	ModuleID int `json:"-" uri:"id"`
+}
+
+// DeletePractTest
+//
+// @Tags module
+//
+// @Summary delete Pract test
+//
+// @Description delete Pract test
+//
+// @Router /v1/module/{id}/test/pract [delete]
+//
+// @Security ApiKeyAuth
+//
+// @Param id path integer true "id of module"
+//
+// @Produce json
+//
+// @Success 200
+//
+// @Failure 400 {object} e.Error "some user error"
+//
+// @Failure 404 {object} e.Error "module not found"
+//
+// @Failure 500 {object} e.Error "internal"
+//
+// @Failure 401 {object} e.Error "not auth"
+func (m ModuleController) DeleteModulePractTest(c *gin.Context) {
+	var req DeleteModulePractTestReq
+	{
+		if err := c.ShouldBindUri(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("ID is not integer"))
+			c.Abort()
+			return
+		}
+	}
+
+	if _, err := m.Client.PractTest.Delete().Where(
+		practtest.HasTestWith(
+			test.HasModuleTestWith(
+				moduletest.HasModuleWith(
+					module.ID(req.ModuleID),
 				),
 			),
 		),
@@ -1493,10 +1927,11 @@ type GetModuleResp struct {
 	Name       string             `json:"name"`
 	SubModules []AddSubModuleResp `json:"subModules,omitempty"`
 	DependOn   []int              `json:"dependOn,omitempty"`
+	Tests       *AddModuleTestResp  `json:"tests"`
 }
 
 func (m ModuleController) GetModule(ctx context.Context, id int) (*GetModuleResp, error) {
-	module, err := m.Client.Module.Query().
+	getModule, err := m.Client.Module.Query().
 		WithModuleDependcies(
 			func(mdq *ent.ModuleDependciesQuery) {
 				mdq.Where(
@@ -1505,6 +1940,7 @@ func (m ModuleController) GetModule(ctx context.Context, id int) (*GetModuleResp
 			},
 		).
 		WithSubModules().
+		WithTest().
 		Where(
 			module.ID(id),
 		).Only(ctx)
@@ -1512,17 +1948,63 @@ func (m ModuleController) GetModule(ctx context.Context, id int) (*GetModuleResp
 		return nil, err
 	}
 
+	var getTheorTest *ent.TheoreticalTest
+	{
+		get, err := m.Client.TheoreticalTest.Query().
+			WithQuestion(
+				func(qq *ent.QuestionQuery) {
+					qq.WithAnswer()
+				},
+			).Where(
+			theoreticaltest.HasTestWith(
+				test.HasModuleTestWith(
+					moduletest.HasModuleWith(
+						module.ID(id),
+					),
+				),
+			),
+		).Only(ctx)
+		if ent.IsNotFound(err) {
+			// Ignore
+		} else if err != nil {
+			return nil, err
+		} else {
+			getTheorTest = get
+		}
+	}
+
+	var getPractTest *ent.PractTest
+	{
+		get, err := m.Client.PractTest.Query().
+			Where(
+				practtest.HasTestWith(
+					test.HasModuleTestWith(
+						moduletest.HasModuleWith(
+							module.ID(id),
+						),
+					),
+				),
+			).Only(ctx)
+		if ent.IsNotFound(err) {
+			// Ignore
+		} else if err != nil {
+			return nil, err
+		} else {
+			getPractTest = get
+		}
+	}
+
 	var resp GetModuleResp
 	{
-		resp.ID = module.ID
-		resp.Name = module.Name
-		if module.Edges.SubModules != nil {
-			for _, subModule := range module.Edges.SubModules {
+		resp.ID = getModule.ID
+		resp.Name = getModule.Name
+		if getModule.Edges.SubModules != nil {
+			for _, subModule := range getModule.Edges.SubModules {
 				resp.SubModules = append(
 					resp.SubModules,
 					AddSubModuleResp{
 						ID:       subModule.ID,
-						ModuleID: module.ID,
+						ModuleID: getModule.ID,
 						Name:     subModule.Name,
 						Text:     subModule.Text,
 					},
@@ -1530,11 +2012,75 @@ func (m ModuleController) GetModule(ctx context.Context, id int) (*GetModuleResp
 			}
 		}
 
-		if module.Edges.ModuleDependcies != nil {
-			for _, dependOn := range module.Edges.ModuleDependcies {
+		if getModule.Edges.ModuleDependcies != nil {
+			for _, dependOn := range getModule.Edges.ModuleDependcies {
 				resp.DependOn = append(resp.DependOn, dependOn.DependentOnID)
 			}
 		}
+
+		var task *AddModuleTestResp
+
+		var theorTest *AddModuleTheorTestResp
+		var practTest *AddModulePractTestResp
+
+		if getTheorTest != nil {
+			theorTest = &AddModuleTheorTestResp{
+				Duratione: int64(getTheorTest.Duration),
+			}
+
+			var questions []AddModuleQuestionResp
+			{
+				for _, question := range getTheorTest.Edges.Question {
+					var answers []AddModuleAnswerResp
+					{
+						for _, answer := range question.Edges.Answer {
+							answers = append(
+								answers,
+								AddModuleAnswerResp{
+									ID:      answer.ID,
+									Answer:  answer.Answer,
+									Correct: &answer.Correct,
+								},
+							)
+						}
+					}
+
+					questions = append(
+						questions,
+						AddModuleQuestionResp{
+							ID:       question.ID,
+							Question: question.Question,
+							Answers:  answers,
+						},
+					)
+				}
+			}
+
+			theorTest.Questions = questions
+		}
+
+		if getPractTest != nil {
+			practTest = &AddModulePractTestResp{
+				Duratione: int64(getPractTest.Duration),
+				ID: getPractTest.ID,
+				Config: getPractTest.Config,
+			}
+		}
+
+		if getPractTest != nil || getTheorTest != nil {
+			task = &AddModuleTestResp{
+				TheoretcialTest: theorTest,
+				PractTest: practTest,
+			}
+
+			if getPractTest != nil {
+				task.ID = getPractTest.TestID
+			} else {
+				task.ID = getTheorTest.ID
+			}
+		}
+
+		resp.Tests = task
 	}
 
 	return &resp, nil
@@ -1872,9 +2418,9 @@ func (m ModuleController) GetModules(
 // @Security ApiKeyAuth
 //
 // @Param namemMatch query string false "name filter"
-// 
+//
 // @Param offset query integer false "name filter"
-// 
+//
 // @Param limit query integer false "name filter"
 //
 // @Produce json
@@ -1913,8 +2459,341 @@ func (m ModuleController) HTTPGetModules(c *gin.Context) {
 		).Error("Failed to Get Modules module dependecy")
 		c.JSON(http.StatusInternalServerError, e.FromString("Failed to Get Modules module dependecy"))
 		c.Abort()
-		return		
+		return
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+type AddModuleTestReq struct {
+	ModuleID        int                             `json:"-" uri:"id"`
+	TheoreticalTest *CreateModuleTheoreticalTestReq `json:"theoreticalTest,omitempty"`
+	PractTest       *CreateModulePractTestReq       `json:"practTest,omitempty"`
+}
+
+type CreateModulePractTestReq struct {
+	Config    map[string]interface{} `json:"config"`
+	Duratione int64                  `json:"duration"`
+}
+
+type CreateModuleTheoreticalTestReq struct {
+	Questions []CreateModuleQuestionReq `json:"questions"`
+	Duratione int64                     `json:"duration"`
+}
+
+type CreateModuleQuestionReq struct {
+	Question string                  `json:"question"`
+	Answers  []CreateModuleAnswerReq `json:"answers"`
+}
+
+type CreateModuleAnswerReq struct {
+	Answer  string `json:"answer"`
+	Correct bool   `json:"correct"`
+}
+
+type AddModuleTestResp struct {
+	ID              int                     `json:"id"`
+	TheoretcialTest *AddModuleTheorTestResp `json:"theoreticalTest,omitempty"`
+	PractTest       *AddModulePractTestResp `json:"practTest,omitempty"`
+}
+
+type AddModuleTheorTestResp struct {
+	Questions []AddModuleQuestionResp `json:"questions"`
+	Duratione int64                   `json:"duration"`
+}
+
+type AddModulePractTestResp struct {
+	ID        int                    `json:"id"`
+	Config    map[string]interface{} `json:"config"`
+	Duratione int64                  `json:"duration"`
+}
+
+type AddModuleQuestionResp struct {
+	ID       int                   `json:"id"`
+	Question string                `json:"question"`
+	Answers  []AddModuleAnswerResp `json:"answers"`
+}
+
+type AddModuleAnswerResp struct {
+	ID      int    `json:"id"`
+	Answer  string `json:"answer"`
+	Correct *bool  `json:"correct,omitempty"`
+}
+
+// AddModuleTest
+//
+// @Tags module
+//
+// @Summary add module test
+//
+// @Description add module test
+//
+// @Description that can do only admin
+//
+// @Router /v1/module/{id}/test [post]
+//
+// @Security ApiKeyAuth
+//
+// @Param moduletest body module.AddModuleTestReq true "ModuleTest info"
+//
+// @Param id path integer true "id of module"
+//
+// @Accept json
+//
+// @Produce json
+//
+// @Success 201 {object} module.AddModuleTestResp
+//
+// @Failure 400 {object} e.Error "some user error"
+//
+// @Failure 404 {object} e.Error "module not found"
+//
+// @Failure 500 {object} e.Error "internal"
+//
+// @Failure 401 {object} e.Error "not auth"
+func (m ModuleController) AddModuleTest(c *gin.Context) {
+	var req AddModuleTestReq
+	{
+		if err := c.ShouldBindUri(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("ID is not integer"))
+			c.Abort()
+			return
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("Unexpected body"))
+			c.Abort()
+			return
+		}
+	}
+
+	Test, err := m.GetOrCreateTestForModule(c, req.ModuleID)
+	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "AddSubModuleTest",
+				"err":  err,
+			},
+		).Error("Failed add submodule test")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed to add submodule test"))
+		c.Abort()
+		return
+	}
+
+	subTest, err := m.Client.ModuleTest.Create().
+		SetModuleID(req.ModuleID).
+		SetTest(Test).
+		Save(c)
+	if ent.IsConstraintError(err) {
+		log.Info("err", err)
+		c.JSON(http.StatusNotFound, e.FromString("SubModule not found"))
+		c.Abort()
+		return
+	} else if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "AddModuleTest",
+				"err":  err,
+			},
+		).Error("Failed add module test")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed to add module test"))
+		c.Abort()
+		return
+	}
+
+	if req.TheoreticalTest != nil {
+		theoTest, err := m.Client.TheoreticalTest.Create().
+			SetTest(Test).
+			SetDuration(int(req.TheoreticalTest.Duratione)).
+			Save(c)
+		if err != nil {
+			log.WithFields(
+				log.Fields{
+					"pkg":  "controllers/module",
+					"func": "AddModuleTest",
+					"err":  err,
+				},
+			).Error("Failed add module test")
+			c.JSON(http.StatusInternalServerError, e.FromString("Failed to add module test"))
+			c.Abort()
+			return
+		}
+
+		for _, question := range req.TheoreticalTest.Questions {
+			createdQuestion, err := m.Client.Question.Create().
+				SetTheoreticalTest(theoTest).
+				SetQuestion(question.Question).
+				Save(c)
+			if err != nil {
+				log.WithFields(
+					log.Fields{
+						"pkg":  "controllers/module",
+						"func": "AddModuleTest",
+						"err":  err,
+					},
+				).Error("Failed add module test")
+				c.JSON(http.StatusInternalServerError, e.FromString("Failed to add module test"))
+				c.Abort()
+				return
+			}
+
+			for _, answer := range question.Answers {
+				_, err := m.Client.Answer.Create().
+					SetAnswer(answer.Answer).
+					SetCorrect(answer.Correct).
+					SetQuestuion(createdQuestion).
+					Save(c)
+				if err != nil {
+					log.WithFields(
+						log.Fields{
+							"pkg":  "controllers/module",
+							"func": "AddModuleTest",
+							"err":  err,
+						},
+					).Error("Failed add module test")
+					c.JSON(http.StatusInternalServerError, e.FromString("Failed to add module test"))
+					c.Abort()
+					return
+				}
+			}
+		}
+	}
+
+	if req.PractTest != nil {
+		_, err := m.Client.PractTest.Create().
+			SetTest(Test).
+			SetConfig(req.PractTest.Config).
+			Save(c)
+		if err != nil {
+			log.WithFields(
+				log.Fields{
+					"pkg":  "controllers/module",
+					"func": "AddModuleTest",
+					"err":  err,
+				},
+			).Error("Failed add module test")
+			c.JSON(http.StatusInternalServerError, e.FromString("Failed to add module test"))
+			c.Abort()
+			return
+		}
+	}
+
+	var getTheorTest *ent.TheoreticalTest
+	{
+		get, err := m.Client.TheoreticalTest.Query().
+			WithQuestion(
+				func(qq *ent.QuestionQuery) {
+					qq.WithAnswer()
+				},
+			).Where(
+			theoreticaltest.HasTestWith(
+				test.HasModuleTestWith(
+					moduletest.ID(subTest.ID),
+				),
+			),
+		).Only(c)
+		if ent.IsNotFound(err) {
+			// Ignore
+		} else if err != nil {
+			log.WithFields(
+				log.Fields{
+					"pkg":  "controllers/module",
+					"func": "AddSubModuleTest",
+					"err":  err,
+				},
+			).Error("Failed add submodule test")
+			c.JSON(http.StatusInternalServerError, e.FromString("Failed to add submodule test"))
+			c.Abort()
+			return
+		} else {
+			getTheorTest = get
+		}
+	}
+
+	var getPractTest *ent.PractTest
+	{
+		get, err := m.Client.PractTest.Query().
+			Where(
+				practtest.HasTestWith(
+					test.HasModuleTestWith(
+						moduletest.ID(subTest.ID),
+					),
+				),
+			).Only(c)
+		if ent.IsNotFound(err) {
+			// Ignore
+		} else if err != nil {
+			log.WithFields(
+				log.Fields{
+					"pkg":  "controllers/module",
+					"func": "AddSubModuleTest",
+					"err":  err,
+				},
+			).Error("Failed add submodule test")
+			c.JSON(http.StatusInternalServerError, e.FromString("Failed to add submodule test"))
+			c.Abort()
+			return
+		} else {
+			getPractTest = get
+		}
+	}
+
+	var resp AddModuleTestResp
+	{
+		resp.ID = subTest.ID
+		var test *AddModuleTheorTestResp
+
+		if getTheorTest != nil {
+			var questions []AddModuleQuestionResp
+			{
+				test = &AddModuleTheorTestResp{}
+				for _, question := range getTheorTest.Edges.Question {
+					var answers []AddModuleAnswerResp
+					{
+						for _, answer := range question.Edges.Answer {
+							answers = append(
+								answers,
+								AddModuleAnswerResp{
+									ID:      answer.ID,
+									Answer:  answer.Answer,
+									Correct: &answer.Correct,
+								},
+							)
+						}
+					}
+
+					questions = append(
+						questions,
+						AddModuleQuestionResp{
+							ID:       question.ID,
+							Question: question.Question,
+							Answers:  answers,
+						},
+					)
+				}
+			}
+
+			test.Questions = questions
+			test.Duratione = time.Duration(getTheorTest.Duration).Microseconds()
+		}
+
+		resp.TheoretcialTest = test
+
+		var practTest *AddModulePractTestResp
+		{
+			if getPractTest != nil {
+				practTest = &AddModulePractTestResp{
+					ID:        getPractTest.ID,
+					Config:    getPractTest.Config,
+					Duratione: time.Duration(getPractTest.Duration).Microseconds(),
+				}
+			}
+		}
+
+		resp.PractTest = practTest
+	}
+
+	c.JSON(http.StatusCreated, resp)
 }

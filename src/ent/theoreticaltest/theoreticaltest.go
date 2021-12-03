@@ -9,10 +9,14 @@ const (
 	FieldID = "id"
 	// FieldTestID holds the string denoting the test_id field in the database.
 	FieldTestID = "test_id"
+	// FieldDuration holds the string denoting the duration field in the database.
+	FieldDuration = "duration"
 	// EdgeTest holds the string denoting the test edge name in mutations.
 	EdgeTest = "Test"
 	// EdgeQuestion holds the string denoting the question edge name in mutations.
 	EdgeQuestion = "Question"
+	// EdgeTheoTry holds the string denoting the theotry edge name in mutations.
+	EdgeTheoTry = "TheoTry"
 	// Table holds the table name of the theoreticaltest in the database.
 	Table = "TheoreticalTest"
 	// TestTable is the table that holds the Test relation/edge.
@@ -29,12 +33,20 @@ const (
 	QuestionInverseTable = "Question"
 	// QuestionColumn is the table column denoting the Question relation/edge.
 	QuestionColumn = "theorical_test_id"
+	// TheoTryTable is the table that holds the TheoTry relation/edge.
+	TheoTryTable = "TheoreticalTry"
+	// TheoTryInverseTable is the table name for the TheoreticalTry entity.
+	// It exists in this package in order to avoid circular dependency with the "theoreticaltry" package.
+	TheoTryInverseTable = "TheoreticalTry"
+	// TheoTryColumn is the table column denoting the TheoTry relation/edge.
+	TheoTryColumn = "theoretical_test_id"
 )
 
 // Columns holds all SQL columns for theoreticaltest fields.
 var Columns = []string{
 	FieldID,
 	FieldTestID,
+	FieldDuration,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

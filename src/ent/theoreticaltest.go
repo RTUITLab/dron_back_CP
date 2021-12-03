@@ -18,6 +18,8 @@ type TheoreticalTest struct {
 	ID int `json:"id,omitempty"`
 	// TestID holds the value of the "test_id" field.
 	TestID int `json:"test_id,omitempty"`
+	// Duration holds the value of the "duration" field.
+	Duration int `json:"duration,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TheoreticalTestQuery when eager-loading is set.
 	Edges TheoreticalTestEdges `json:"edges"`
@@ -29,9 +31,11 @@ type TheoreticalTestEdges struct {
 	Test *Test `json:"Test,omitempty"`
 	// Question holds the value of the Question edge.
 	Question []*Question `json:"Question,omitempty"`
+	// TheoTry holds the value of the TheoTry edge.
+	TheoTry []*TheoreticalTry `json:"TheoTry,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // TestOrErr returns the Test value or an error if the edge
@@ -57,12 +61,21 @@ func (e TheoreticalTestEdges) QuestionOrErr() ([]*Question, error) {
 	return nil, &NotLoadedError{edge: "Question"}
 }
 
+// TheoTryOrErr returns the TheoTry value or an error if the edge
+// was not loaded in eager-loading.
+func (e TheoreticalTestEdges) TheoTryOrErr() ([]*TheoreticalTry, error) {
+	if e.loadedTypes[2] {
+		return e.TheoTry, nil
+	}
+	return nil, &NotLoadedError{edge: "TheoTry"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*TheoreticalTest) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case theoreticaltest.FieldID, theoreticaltest.FieldTestID:
+		case theoreticaltest.FieldID, theoreticaltest.FieldTestID, theoreticaltest.FieldDuration:
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type TheoreticalTest", columns[i])
@@ -91,6 +104,12 @@ func (tt *TheoreticalTest) assignValues(columns []string, values []interface{}) 
 			} else if value.Valid {
 				tt.TestID = int(value.Int64)
 			}
+		case theoreticaltest.FieldDuration:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field duration", values[i])
+			} else if value.Valid {
+				tt.Duration = int(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -104,6 +123,11 @@ func (tt *TheoreticalTest) QueryTest() *TestQuery {
 // QueryQuestion queries the "Question" edge of the TheoreticalTest entity.
 func (tt *TheoreticalTest) QueryQuestion() *QuestionQuery {
 	return (&TheoreticalTestClient{config: tt.config}).QueryQuestion(tt)
+}
+
+// QueryTheoTry queries the "TheoTry" edge of the TheoreticalTest entity.
+func (tt *TheoreticalTest) QueryTheoTry() *TheoreticalTryQuery {
+	return (&TheoreticalTestClient{config: tt.config}).QueryTheoTry(tt)
 }
 
 // Update returns a builder for updating this TheoreticalTest.
@@ -131,6 +155,8 @@ func (tt *TheoreticalTest) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v", tt.ID))
 	builder.WriteString(", test_id=")
 	builder.WriteString(fmt.Sprintf("%v", tt.TestID))
+	builder.WriteString(", duration=")
+	builder.WriteString(fmt.Sprintf("%v", tt.Duration))
 	builder.WriteByte(')')
 	return builder.String()
 }

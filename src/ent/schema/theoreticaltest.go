@@ -18,6 +18,7 @@ type TheoreticalTest struct {
 func (TheoreticalTest) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("test_id"),
+		field.Int("duration").Optional(),
 	}
 }
 
@@ -39,5 +40,6 @@ func (TheoreticalTest) Edges() []ent.Edge {
 			Annotations(
 				entsql.Annotation{OnDelete: entsql.Cascade},
 			),
+		edge.To("TheoTry", TheoreticalTry.Type),
 	}
 }

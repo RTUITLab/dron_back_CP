@@ -12,6 +12,7 @@ import (
 	"github.com/0B1t322/CP-Rosseti-Back/ent/answer"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/tryanswer"
 )
 
 // QuestionCreate is the builder for creating a Question entity.
@@ -57,6 +58,21 @@ func (qc *QuestionCreate) AddAnswer(a ...*Answer) *QuestionCreate {
 		ids[i] = a[i].ID
 	}
 	return qc.AddAnswerIDs(ids...)
+}
+
+// AddTryAnswerIDs adds the "TryAnswer" edge to the TryAnswer entity by IDs.
+func (qc *QuestionCreate) AddTryAnswerIDs(ids ...int) *QuestionCreate {
+	qc.mutation.AddTryAnswerIDs(ids...)
+	return qc
+}
+
+// AddTryAnswer adds the "TryAnswer" edges to the TryAnswer entity.
+func (qc *QuestionCreate) AddTryAnswer(t ...*TryAnswer) *QuestionCreate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return qc.AddTryAnswerIDs(ids...)
 }
 
 // Mutation returns the QuestionMutation object of the builder.
@@ -204,6 +220,25 @@ func (qc *QuestionCreate) createSpec() (*Question, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: answer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := qc.mutation.TryAnswerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   question.TryAnswerTable,
+			Columns: []string{question.TryAnswerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: tryanswer.FieldID,
 				},
 			},
 		}

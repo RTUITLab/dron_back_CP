@@ -18,8 +18,11 @@ import (
 	"github.com/0B1t322/CP-Rosseti-Back/ent/role"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/task"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltry"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/tryanswer"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/user"
 
 	"entgo.io/ent/dialect"
@@ -50,10 +53,16 @@ type Client struct {
 	SubModule *SubModuleClient
 	// SubModuleTest is the client for interacting with the SubModuleTest builders.
 	SubModuleTest *SubModuleTestClient
+	// Task is the client for interacting with the Task builders.
+	Task *TaskClient
 	// Test is the client for interacting with the Test builders.
 	Test *TestClient
 	// TheoreticalTest is the client for interacting with the TheoreticalTest builders.
 	TheoreticalTest *TheoreticalTestClient
+	// TheoreticalTry is the client for interacting with the TheoreticalTry builders.
+	TheoreticalTry *TheoreticalTryClient
+	// TryAnswer is the client for interacting with the TryAnswer builders.
+	TryAnswer *TryAnswerClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -78,8 +87,11 @@ func (c *Client) init() {
 	c.Role = NewRoleClient(c.config)
 	c.SubModule = NewSubModuleClient(c.config)
 	c.SubModuleTest = NewSubModuleTestClient(c.config)
+	c.Task = NewTaskClient(c.config)
 	c.Test = NewTestClient(c.config)
 	c.TheoreticalTest = NewTheoreticalTestClient(c.config)
+	c.TheoreticalTry = NewTheoreticalTryClient(c.config)
+	c.TryAnswer = NewTryAnswerClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -123,8 +135,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Role:             NewRoleClient(cfg),
 		SubModule:        NewSubModuleClient(cfg),
 		SubModuleTest:    NewSubModuleTestClient(cfg),
+		Task:             NewTaskClient(cfg),
 		Test:             NewTestClient(cfg),
 		TheoreticalTest:  NewTheoreticalTestClient(cfg),
+		TheoreticalTry:   NewTheoreticalTryClient(cfg),
+		TryAnswer:        NewTryAnswerClient(cfg),
 		User:             NewUserClient(cfg),
 	}, nil
 }
@@ -153,8 +168,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Role:             NewRoleClient(cfg),
 		SubModule:        NewSubModuleClient(cfg),
 		SubModuleTest:    NewSubModuleTestClient(cfg),
+		Task:             NewTaskClient(cfg),
 		Test:             NewTestClient(cfg),
 		TheoreticalTest:  NewTheoreticalTestClient(cfg),
+		TheoreticalTry:   NewTheoreticalTryClient(cfg),
+		TryAnswer:        NewTryAnswerClient(cfg),
 		User:             NewUserClient(cfg),
 	}, nil
 }
@@ -194,8 +212,11 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Role.Use(hooks...)
 	c.SubModule.Use(hooks...)
 	c.SubModuleTest.Use(hooks...)
+	c.Task.Use(hooks...)
 	c.Test.Use(hooks...)
 	c.TheoreticalTest.Use(hooks...)
+	c.TheoreticalTry.Use(hooks...)
+	c.TryAnswer.Use(hooks...)
 	c.User.Use(hooks...)
 }
 
@@ -804,6 +825,22 @@ func (c *PractTestClient) QueryTest(pt *PractTest) *TestQuery {
 	return query
 }
 
+// QueryTask queries the Task edge of a PractTest.
+func (c *PractTestClient) QueryTask(pt *PractTest) *TaskQuery {
+	query := &TaskQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(practtest.Table, practtest.FieldID, id),
+			sqlgraph.To(task.Table, task.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, practtest.TaskTable, practtest.TaskColumn),
+		)
+		fromV = sqlgraph.Neighbors(pt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PractTestClient) Hooks() []Hook {
 	return c.hooks.PractTest
@@ -919,6 +956,22 @@ func (c *QuestionClient) QueryAnswer(q *Question) *AnswerQuery {
 			sqlgraph.From(question.Table, question.FieldID, id),
 			sqlgraph.To(answer.Table, answer.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, question.AnswerTable, question.AnswerColumn),
+		)
+		fromV = sqlgraph.Neighbors(q.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTryAnswer queries the TryAnswer edge of a Question.
+func (c *QuestionClient) QueryTryAnswer(q *Question) *TryAnswerQuery {
+	query := &TryAnswerQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := q.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(question.Table, question.FieldID, id),
+			sqlgraph.To(tryanswer.Table, tryanswer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, question.TryAnswerTable, question.TryAnswerColumn),
 		)
 		fromV = sqlgraph.Neighbors(q.driver.Dialect(), step)
 		return fromV, nil
@@ -1281,6 +1334,112 @@ func (c *SubModuleTestClient) Hooks() []Hook {
 	return c.hooks.SubModuleTest
 }
 
+// TaskClient is a client for the Task schema.
+type TaskClient struct {
+	config
+}
+
+// NewTaskClient returns a client for the Task from the given config.
+func NewTaskClient(c config) *TaskClient {
+	return &TaskClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `task.Hooks(f(g(h())))`.
+func (c *TaskClient) Use(hooks ...Hook) {
+	c.hooks.Task = append(c.hooks.Task, hooks...)
+}
+
+// Create returns a create builder for Task.
+func (c *TaskClient) Create() *TaskCreate {
+	mutation := newTaskMutation(c.config, OpCreate)
+	return &TaskCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Task entities.
+func (c *TaskClient) CreateBulk(builders ...*TaskCreate) *TaskCreateBulk {
+	return &TaskCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Task.
+func (c *TaskClient) Update() *TaskUpdate {
+	mutation := newTaskMutation(c.config, OpUpdate)
+	return &TaskUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TaskClient) UpdateOne(t *Task) *TaskUpdateOne {
+	mutation := newTaskMutation(c.config, OpUpdateOne, withTask(t))
+	return &TaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TaskClient) UpdateOneID(id int) *TaskUpdateOne {
+	mutation := newTaskMutation(c.config, OpUpdateOne, withTaskID(id))
+	return &TaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Task.
+func (c *TaskClient) Delete() *TaskDelete {
+	mutation := newTaskMutation(c.config, OpDelete)
+	return &TaskDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *TaskClient) DeleteOne(t *Task) *TaskDeleteOne {
+	return c.DeleteOneID(t.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *TaskClient) DeleteOneID(id int) *TaskDeleteOne {
+	builder := c.Delete().Where(task.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TaskDeleteOne{builder}
+}
+
+// Query returns a query builder for Task.
+func (c *TaskClient) Query() *TaskQuery {
+	return &TaskQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Task entity by its id.
+func (c *TaskClient) Get(ctx context.Context, id int) (*Task, error) {
+	return c.Query().Where(task.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TaskClient) GetX(ctx context.Context, id int) *Task {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTest queries the Test edge of a Task.
+func (c *TaskClient) QueryTest(t *Task) *PractTestQuery {
+	query := &PractTestQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(task.Table, task.FieldID, id),
+			sqlgraph.To(practtest.Table, practtest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, task.TestTable, task.TestColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TaskClient) Hooks() []Hook {
+	return c.hooks.Task
+}
+
 // TestClient is a client for the Test schema.
 type TestClient struct {
 	config
@@ -1552,9 +1711,285 @@ func (c *TheoreticalTestClient) QueryQuestion(tt *TheoreticalTest) *QuestionQuer
 	return query
 }
 
+// QueryTheoTry queries the TheoTry edge of a TheoreticalTest.
+func (c *TheoreticalTestClient) QueryTheoTry(tt *TheoreticalTest) *TheoreticalTryQuery {
+	query := &TheoreticalTryQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := tt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(theoreticaltest.Table, theoreticaltest.FieldID, id),
+			sqlgraph.To(theoreticaltry.Table, theoreticaltry.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, theoreticaltest.TheoTryTable, theoreticaltest.TheoTryColumn),
+		)
+		fromV = sqlgraph.Neighbors(tt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *TheoreticalTestClient) Hooks() []Hook {
 	return c.hooks.TheoreticalTest
+}
+
+// TheoreticalTryClient is a client for the TheoreticalTry schema.
+type TheoreticalTryClient struct {
+	config
+}
+
+// NewTheoreticalTryClient returns a client for the TheoreticalTry from the given config.
+func NewTheoreticalTryClient(c config) *TheoreticalTryClient {
+	return &TheoreticalTryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `theoreticaltry.Hooks(f(g(h())))`.
+func (c *TheoreticalTryClient) Use(hooks ...Hook) {
+	c.hooks.TheoreticalTry = append(c.hooks.TheoreticalTry, hooks...)
+}
+
+// Create returns a create builder for TheoreticalTry.
+func (c *TheoreticalTryClient) Create() *TheoreticalTryCreate {
+	mutation := newTheoreticalTryMutation(c.config, OpCreate)
+	return &TheoreticalTryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TheoreticalTry entities.
+func (c *TheoreticalTryClient) CreateBulk(builders ...*TheoreticalTryCreate) *TheoreticalTryCreateBulk {
+	return &TheoreticalTryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TheoreticalTry.
+func (c *TheoreticalTryClient) Update() *TheoreticalTryUpdate {
+	mutation := newTheoreticalTryMutation(c.config, OpUpdate)
+	return &TheoreticalTryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TheoreticalTryClient) UpdateOne(tt *TheoreticalTry) *TheoreticalTryUpdateOne {
+	mutation := newTheoreticalTryMutation(c.config, OpUpdateOne, withTheoreticalTry(tt))
+	return &TheoreticalTryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TheoreticalTryClient) UpdateOneID(id int) *TheoreticalTryUpdateOne {
+	mutation := newTheoreticalTryMutation(c.config, OpUpdateOne, withTheoreticalTryID(id))
+	return &TheoreticalTryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TheoreticalTry.
+func (c *TheoreticalTryClient) Delete() *TheoreticalTryDelete {
+	mutation := newTheoreticalTryMutation(c.config, OpDelete)
+	return &TheoreticalTryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *TheoreticalTryClient) DeleteOne(tt *TheoreticalTry) *TheoreticalTryDeleteOne {
+	return c.DeleteOneID(tt.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *TheoreticalTryClient) DeleteOneID(id int) *TheoreticalTryDeleteOne {
+	builder := c.Delete().Where(theoreticaltry.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TheoreticalTryDeleteOne{builder}
+}
+
+// Query returns a query builder for TheoreticalTry.
+func (c *TheoreticalTryClient) Query() *TheoreticalTryQuery {
+	return &TheoreticalTryQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a TheoreticalTry entity by its id.
+func (c *TheoreticalTryClient) Get(ctx context.Context, id int) (*TheoreticalTry, error) {
+	return c.Query().Where(theoreticaltry.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TheoreticalTryClient) GetX(ctx context.Context, id int) *TheoreticalTry {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTheoreticalTest queries the TheoreticalTest edge of a TheoreticalTry.
+func (c *TheoreticalTryClient) QueryTheoreticalTest(tt *TheoreticalTry) *TheoreticalTestQuery {
+	query := &TheoreticalTestQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := tt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(theoreticaltry.Table, theoreticaltry.FieldID, id),
+			sqlgraph.To(theoreticaltest.Table, theoreticaltest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, theoreticaltry.TheoreticalTestTable, theoreticaltry.TheoreticalTestColumn),
+		)
+		fromV = sqlgraph.Neighbors(tt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUser queries the User edge of a TheoreticalTry.
+func (c *TheoreticalTryClient) QueryUser(tt *TheoreticalTry) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := tt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(theoreticaltry.Table, theoreticaltry.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, theoreticaltry.UserTable, theoreticaltry.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(tt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTryAnswer queries the TryAnswer edge of a TheoreticalTry.
+func (c *TheoreticalTryClient) QueryTryAnswer(tt *TheoreticalTry) *TryAnswerQuery {
+	query := &TryAnswerQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := tt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(theoreticaltry.Table, theoreticaltry.FieldID, id),
+			sqlgraph.To(tryanswer.Table, tryanswer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, theoreticaltry.TryAnswerTable, theoreticaltry.TryAnswerColumn),
+		)
+		fromV = sqlgraph.Neighbors(tt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TheoreticalTryClient) Hooks() []Hook {
+	return c.hooks.TheoreticalTry
+}
+
+// TryAnswerClient is a client for the TryAnswer schema.
+type TryAnswerClient struct {
+	config
+}
+
+// NewTryAnswerClient returns a client for the TryAnswer from the given config.
+func NewTryAnswerClient(c config) *TryAnswerClient {
+	return &TryAnswerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tryanswer.Hooks(f(g(h())))`.
+func (c *TryAnswerClient) Use(hooks ...Hook) {
+	c.hooks.TryAnswer = append(c.hooks.TryAnswer, hooks...)
+}
+
+// Create returns a create builder for TryAnswer.
+func (c *TryAnswerClient) Create() *TryAnswerCreate {
+	mutation := newTryAnswerMutation(c.config, OpCreate)
+	return &TryAnswerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TryAnswer entities.
+func (c *TryAnswerClient) CreateBulk(builders ...*TryAnswerCreate) *TryAnswerCreateBulk {
+	return &TryAnswerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TryAnswer.
+func (c *TryAnswerClient) Update() *TryAnswerUpdate {
+	mutation := newTryAnswerMutation(c.config, OpUpdate)
+	return &TryAnswerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TryAnswerClient) UpdateOne(ta *TryAnswer) *TryAnswerUpdateOne {
+	mutation := newTryAnswerMutation(c.config, OpUpdateOne, withTryAnswer(ta))
+	return &TryAnswerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TryAnswerClient) UpdateOneID(id int) *TryAnswerUpdateOne {
+	mutation := newTryAnswerMutation(c.config, OpUpdateOne, withTryAnswerID(id))
+	return &TryAnswerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TryAnswer.
+func (c *TryAnswerClient) Delete() *TryAnswerDelete {
+	mutation := newTryAnswerMutation(c.config, OpDelete)
+	return &TryAnswerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *TryAnswerClient) DeleteOne(ta *TryAnswer) *TryAnswerDeleteOne {
+	return c.DeleteOneID(ta.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *TryAnswerClient) DeleteOneID(id int) *TryAnswerDeleteOne {
+	builder := c.Delete().Where(tryanswer.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TryAnswerDeleteOne{builder}
+}
+
+// Query returns a query builder for TryAnswer.
+func (c *TryAnswerClient) Query() *TryAnswerQuery {
+	return &TryAnswerQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a TryAnswer entity by its id.
+func (c *TryAnswerClient) Get(ctx context.Context, id int) (*TryAnswer, error) {
+	return c.Query().Where(tryanswer.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TryAnswerClient) GetX(ctx context.Context, id int) *TryAnswer {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTheoreticalTry queries the TheoreticalTry edge of a TryAnswer.
+func (c *TryAnswerClient) QueryTheoreticalTry(ta *TryAnswer) *TheoreticalTryQuery {
+	query := &TheoreticalTryQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ta.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tryanswer.Table, tryanswer.FieldID, id),
+			sqlgraph.To(theoreticaltry.Table, theoreticaltry.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, tryanswer.TheoreticalTryTable, tryanswer.TheoreticalTryColumn),
+		)
+		fromV = sqlgraph.Neighbors(ta.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryQuestion queries the Question edge of a TryAnswer.
+func (c *TryAnswerClient) QueryQuestion(ta *TryAnswer) *QuestionQuery {
+	query := &QuestionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ta.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tryanswer.Table, tryanswer.FieldID, id),
+			sqlgraph.To(question.Table, question.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, tryanswer.QuestionTable, tryanswer.QuestionColumn),
+		)
+		fromV = sqlgraph.Neighbors(ta.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TryAnswerClient) Hooks() []Hook {
+	return c.hooks.TryAnswer
 }
 
 // UserClient is a client for the User schema.
@@ -1651,6 +2086,22 @@ func (c *UserClient) QueryRole(u *User) *RoleQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(role.Table, role.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, user.RoleTable, user.RoleColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTheoTry queries the TheoTry edge of a User.
+func (c *UserClient) QueryTheoTry(u *User) *TheoreticalTryQuery {
+	query := &TheoreticalTryQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(theoreticaltry.Table, theoreticaltry.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.TheoTryTable, user.TheoTryColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

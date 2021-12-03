@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/predicate"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/role"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltry"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/user"
 )
 
@@ -58,6 +59,21 @@ func (uu *UserUpdate) SetRole(r *Role) *UserUpdate {
 	return uu.SetRoleID(r.ID)
 }
 
+// AddTheoTryIDs adds the "TheoTry" edge to the TheoreticalTry entity by IDs.
+func (uu *UserUpdate) AddTheoTryIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddTheoTryIDs(ids...)
+	return uu
+}
+
+// AddTheoTry adds the "TheoTry" edges to the TheoreticalTry entity.
+func (uu *UserUpdate) AddTheoTry(t ...*TheoreticalTry) *UserUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uu.AddTheoTryIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -67,6 +83,27 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 func (uu *UserUpdate) ClearRole() *UserUpdate {
 	uu.mutation.ClearRole()
 	return uu
+}
+
+// ClearTheoTry clears all "TheoTry" edges to the TheoreticalTry entity.
+func (uu *UserUpdate) ClearTheoTry() *UserUpdate {
+	uu.mutation.ClearTheoTry()
+	return uu
+}
+
+// RemoveTheoTryIDs removes the "TheoTry" edge to TheoreticalTry entities by IDs.
+func (uu *UserUpdate) RemoveTheoTryIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveTheoTryIDs(ids...)
+	return uu
+}
+
+// RemoveTheoTry removes "TheoTry" edges to TheoreticalTry entities.
+func (uu *UserUpdate) RemoveTheoTry(t ...*TheoreticalTry) *UserUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uu.RemoveTheoTryIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -211,6 +248,60 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.TheoTryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TheoTryTable,
+			Columns: []string{user.TheoTryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: theoreticaltry.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedTheoTryIDs(); len(nodes) > 0 && !uu.mutation.TheoTryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TheoTryTable,
+			Columns: []string{user.TheoTryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: theoreticaltry.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.TheoTryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TheoTryTable,
+			Columns: []string{user.TheoTryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: theoreticaltry.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -261,6 +352,21 @@ func (uuo *UserUpdateOne) SetRole(r *Role) *UserUpdateOne {
 	return uuo.SetRoleID(r.ID)
 }
 
+// AddTheoTryIDs adds the "TheoTry" edge to the TheoreticalTry entity by IDs.
+func (uuo *UserUpdateOne) AddTheoTryIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddTheoTryIDs(ids...)
+	return uuo
+}
+
+// AddTheoTry adds the "TheoTry" edges to the TheoreticalTry entity.
+func (uuo *UserUpdateOne) AddTheoTry(t ...*TheoreticalTry) *UserUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uuo.AddTheoTryIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -270,6 +376,27 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 func (uuo *UserUpdateOne) ClearRole() *UserUpdateOne {
 	uuo.mutation.ClearRole()
 	return uuo
+}
+
+// ClearTheoTry clears all "TheoTry" edges to the TheoreticalTry entity.
+func (uuo *UserUpdateOne) ClearTheoTry() *UserUpdateOne {
+	uuo.mutation.ClearTheoTry()
+	return uuo
+}
+
+// RemoveTheoTryIDs removes the "TheoTry" edge to TheoreticalTry entities by IDs.
+func (uuo *UserUpdateOne) RemoveTheoTryIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveTheoTryIDs(ids...)
+	return uuo
+}
+
+// RemoveTheoTry removes "TheoTry" edges to TheoreticalTry entities.
+func (uuo *UserUpdateOne) RemoveTheoTry(t ...*TheoreticalTry) *UserUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uuo.RemoveTheoTryIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -430,6 +557,60 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: role.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.TheoTryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TheoTryTable,
+			Columns: []string{user.TheoTryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: theoreticaltry.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedTheoTryIDs(); len(nodes) > 0 && !uuo.mutation.TheoTryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TheoTryTable,
+			Columns: []string{user.TheoTryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: theoreticaltry.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.TheoTryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TheoTryTable,
+			Columns: []string{user.TheoTryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: theoreticaltry.FieldID,
 				},
 			},
 		}

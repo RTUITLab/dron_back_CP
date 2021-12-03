@@ -16,6 +16,7 @@ import (
 	"github.com/0B1t322/CP-Rosseti-Back/ent/predicate"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/tryanswer"
 )
 
 // QuestionQuery is the builder for querying Question entities.
@@ -30,6 +31,7 @@ type QuestionQuery struct {
 	// eager-loading edges.
 	withTheoreticalTest *TheoreticalTestQuery
 	withAnswer          *AnswerQuery
+	withTryAnswer       *TryAnswerQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -103,6 +105,28 @@ func (qq *QuestionQuery) QueryAnswer() *AnswerQuery {
 			sqlgraph.From(question.Table, question.FieldID, selector),
 			sqlgraph.To(answer.Table, answer.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, question.AnswerTable, question.AnswerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(qq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTryAnswer chains the current query on the "TryAnswer" edge.
+func (qq *QuestionQuery) QueryTryAnswer() *TryAnswerQuery {
+	query := &TryAnswerQuery{config: qq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := qq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := qq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(question.Table, question.FieldID, selector),
+			sqlgraph.To(tryanswer.Table, tryanswer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, question.TryAnswerTable, question.TryAnswerColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(qq.driver.Dialect(), step)
 		return fromU, nil
@@ -293,6 +317,7 @@ func (qq *QuestionQuery) Clone() *QuestionQuery {
 		predicates:          append([]predicate.Question{}, qq.predicates...),
 		withTheoreticalTest: qq.withTheoreticalTest.Clone(),
 		withAnswer:          qq.withAnswer.Clone(),
+		withTryAnswer:       qq.withTryAnswer.Clone(),
 		// clone intermediate query.
 		sql:  qq.sql.Clone(),
 		path: qq.path,
@@ -318,6 +343,17 @@ func (qq *QuestionQuery) WithAnswer(opts ...func(*AnswerQuery)) *QuestionQuery {
 		opt(query)
 	}
 	qq.withAnswer = query
+	return qq
+}
+
+// WithTryAnswer tells the query-builder to eager-load the nodes that are connected to
+// the "TryAnswer" edge. The optional arguments are used to configure the query builder of the edge.
+func (qq *QuestionQuery) WithTryAnswer(opts ...func(*TryAnswerQuery)) *QuestionQuery {
+	query := &TryAnswerQuery{config: qq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	qq.withTryAnswer = query
 	return qq
 }
 
@@ -386,9 +422,10 @@ func (qq *QuestionQuery) sqlAll(ctx context.Context) ([]*Question, error) {
 	var (
 		nodes       = []*Question{}
 		_spec       = qq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			qq.withTheoreticalTest != nil,
 			qq.withAnswer != nil,
+			qq.withTryAnswer != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -459,6 +496,31 @@ func (qq *QuestionQuery) sqlAll(ctx context.Context) ([]*Question, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "question_id" returned %v for node %v`, fk, n.ID)
 			}
 			node.Edges.Answer = append(node.Edges.Answer, n)
+		}
+	}
+
+	if query := qq.withTryAnswer; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Question)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.TryAnswer = []*TryAnswer{}
+		}
+		query.Where(predicate.TryAnswer(func(s *sql.Selector) {
+			s.Where(sql.InValues(question.TryAnswerColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.QuestionID
+			node, ok := nodeids[fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "question_id" returned %v for node %v`, fk, n.ID)
+			}
+			node.Edges.TryAnswer = append(node.Edges.TryAnswer, n)
 		}
 	}
 

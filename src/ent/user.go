@@ -30,9 +30,11 @@ type User struct {
 type UserEdges struct {
 	// Role holds the value of the Role edge.
 	Role *Role `json:"Role,omitempty"`
+	// TheoTry holds the value of the TheoTry edge.
+	TheoTry []*TheoreticalTry `json:"TheoTry,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // RoleOrErr returns the Role value or an error if the edge
@@ -47,6 +49,15 @@ func (e UserEdges) RoleOrErr() (*Role, error) {
 		return e.Role, nil
 	}
 	return nil, &NotLoadedError{edge: "Role"}
+}
+
+// TheoTryOrErr returns the TheoTry value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) TheoTryOrErr() ([]*TheoreticalTry, error) {
+	if e.loadedTypes[1] {
+		return e.TheoTry, nil
+	}
+	return nil, &NotLoadedError{edge: "TheoTry"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -108,6 +119,11 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 // QueryRole queries the "Role" edge of the User entity.
 func (u *User) QueryRole() *RoleQuery {
 	return (&UserClient{config: u.config}).QueryRole(u)
+}
+
+// QueryTheoTry queries the "TheoTry" edge of the User entity.
+func (u *User) QueryTheoTry() *TheoreticalTryQuery {
+	return (&UserClient{config: u.config}).QueryTheoTry(u)
 }
 
 // Update returns a builder for updating this User.

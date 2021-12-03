@@ -98,6 +98,13 @@ func TestID(v int) predicate.TheoreticalTest {
 	})
 }
 
+// Duration applies equality check predicate on the "duration" field. It's identical to DurationEQ.
+func Duration(v int) predicate.TheoreticalTest {
+	return predicate.TheoreticalTest(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDuration), v))
+	})
+}
+
 // TestIDEQ applies the EQ predicate on the "test_id" field.
 func TestIDEQ(v int) predicate.TheoreticalTest {
 	return predicate.TheoreticalTest(func(s *sql.Selector) {
@@ -143,6 +150,96 @@ func TestIDNotIn(vs ...int) predicate.TheoreticalTest {
 			return
 		}
 		s.Where(sql.NotIn(s.C(FieldTestID), v...))
+	})
+}
+
+// DurationEQ applies the EQ predicate on the "duration" field.
+func DurationEQ(v int) predicate.TheoreticalTest {
+	return predicate.TheoreticalTest(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDuration), v))
+	})
+}
+
+// DurationNEQ applies the NEQ predicate on the "duration" field.
+func DurationNEQ(v int) predicate.TheoreticalTest {
+	return predicate.TheoreticalTest(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldDuration), v))
+	})
+}
+
+// DurationIn applies the In predicate on the "duration" field.
+func DurationIn(vs ...int) predicate.TheoreticalTest {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.TheoreticalTest(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldDuration), v...))
+	})
+}
+
+// DurationNotIn applies the NotIn predicate on the "duration" field.
+func DurationNotIn(vs ...int) predicate.TheoreticalTest {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.TheoreticalTest(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldDuration), v...))
+	})
+}
+
+// DurationGT applies the GT predicate on the "duration" field.
+func DurationGT(v int) predicate.TheoreticalTest {
+	return predicate.TheoreticalTest(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldDuration), v))
+	})
+}
+
+// DurationGTE applies the GTE predicate on the "duration" field.
+func DurationGTE(v int) predicate.TheoreticalTest {
+	return predicate.TheoreticalTest(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldDuration), v))
+	})
+}
+
+// DurationLT applies the LT predicate on the "duration" field.
+func DurationLT(v int) predicate.TheoreticalTest {
+	return predicate.TheoreticalTest(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldDuration), v))
+	})
+}
+
+// DurationLTE applies the LTE predicate on the "duration" field.
+func DurationLTE(v int) predicate.TheoreticalTest {
+	return predicate.TheoreticalTest(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldDuration), v))
+	})
+}
+
+// DurationIsNil applies the IsNil predicate on the "duration" field.
+func DurationIsNil() predicate.TheoreticalTest {
+	return predicate.TheoreticalTest(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldDuration)))
+	})
+}
+
+// DurationNotNil applies the NotNil predicate on the "duration" field.
+func DurationNotNil() predicate.TheoreticalTest {
+	return predicate.TheoreticalTest(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldDuration)))
 	})
 }
 
@@ -193,6 +290,34 @@ func HasQuestionWith(preds ...predicate.Question) predicate.TheoreticalTest {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(QuestionInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, QuestionTable, QuestionColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTheoTry applies the HasEdge predicate on the "TheoTry" edge.
+func HasTheoTry() predicate.TheoreticalTest {
+	return predicate.TheoreticalTest(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TheoTryTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TheoTryTable, TheoTryColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTheoTryWith applies the HasEdge predicate on the "TheoTry" edge with a given conditions (other predicates).
+func HasTheoTryWith(preds ...predicate.TheoreticalTry) predicate.TheoreticalTest {
+	return predicate.TheoreticalTest(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TheoTryInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TheoTryTable, TheoTryColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

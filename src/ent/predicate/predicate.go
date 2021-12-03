@@ -33,11 +33,20 @@ type SubModule func(*sql.Selector)
 // SubModuleTest is the predicate function for submoduletest builders.
 type SubModuleTest func(*sql.Selector)
 
+// Task is the predicate function for task builders.
+type Task func(*sql.Selector)
+
 // Test is the predicate function for test builders.
 type Test func(*sql.Selector)
 
 // TheoreticalTest is the predicate function for theoreticaltest builders.
 type TheoreticalTest func(*sql.Selector)
+
+// TheoreticalTry is the predicate function for theoreticaltry builders.
+type TheoreticalTry func(*sql.Selector)
+
+// TryAnswer is the predicate function for tryanswer builders.
+type TryAnswer func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

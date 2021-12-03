@@ -30,10 +30,16 @@ type Tx struct {
 	SubModule *SubModuleClient
 	// SubModuleTest is the client for interacting with the SubModuleTest builders.
 	SubModuleTest *SubModuleTestClient
+	// Task is the client for interacting with the Task builders.
+	Task *TaskClient
 	// Test is the client for interacting with the Test builders.
 	Test *TestClient
 	// TheoreticalTest is the client for interacting with the TheoreticalTest builders.
 	TheoreticalTest *TheoreticalTestClient
+	// TheoreticalTry is the client for interacting with the TheoreticalTry builders.
+	TheoreticalTry *TheoreticalTryClient
+	// TryAnswer is the client for interacting with the TryAnswer builders.
+	TryAnswer *TryAnswerClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -180,8 +186,11 @@ func (tx *Tx) init() {
 	tx.Role = NewRoleClient(tx.config)
 	tx.SubModule = NewSubModuleClient(tx.config)
 	tx.SubModuleTest = NewSubModuleTestClient(tx.config)
+	tx.Task = NewTaskClient(tx.config)
 	tx.Test = NewTestClient(tx.config)
 	tx.TheoreticalTest = NewTheoreticalTestClient(tx.config)
+	tx.TheoreticalTry = NewTheoreticalTryClient(tx.config)
+	tx.TryAnswer = NewTryAnswerClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltry"
 )
 
 // TheoreticalTestCreate is the builder for creating a TheoreticalTest entity.
@@ -24,6 +25,20 @@ type TheoreticalTestCreate struct {
 // SetTestID sets the "test_id" field.
 func (ttc *TheoreticalTestCreate) SetTestID(i int) *TheoreticalTestCreate {
 	ttc.mutation.SetTestID(i)
+	return ttc
+}
+
+// SetDuration sets the "duration" field.
+func (ttc *TheoreticalTestCreate) SetDuration(i int) *TheoreticalTestCreate {
+	ttc.mutation.SetDuration(i)
+	return ttc
+}
+
+// SetNillableDuration sets the "duration" field if the given value is not nil.
+func (ttc *TheoreticalTestCreate) SetNillableDuration(i *int) *TheoreticalTestCreate {
+	if i != nil {
+		ttc.SetDuration(*i)
+	}
 	return ttc
 }
 
@@ -45,6 +60,21 @@ func (ttc *TheoreticalTestCreate) AddQuestion(q ...*Question) *TheoreticalTestCr
 		ids[i] = q[i].ID
 	}
 	return ttc.AddQuestionIDs(ids...)
+}
+
+// AddTheoTryIDs adds the "TheoTry" edge to the TheoreticalTry entity by IDs.
+func (ttc *TheoreticalTestCreate) AddTheoTryIDs(ids ...int) *TheoreticalTestCreate {
+	ttc.mutation.AddTheoTryIDs(ids...)
+	return ttc
+}
+
+// AddTheoTry adds the "TheoTry" edges to the TheoreticalTry entity.
+func (ttc *TheoreticalTestCreate) AddTheoTry(t ...*TheoreticalTry) *TheoreticalTestCreate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return ttc.AddTheoTryIDs(ids...)
 }
 
 // Mutation returns the TheoreticalTestMutation object of the builder.
@@ -150,6 +180,14 @@ func (ttc *TheoreticalTestCreate) createSpec() (*TheoreticalTest, *sqlgraph.Crea
 			},
 		}
 	)
+	if value, ok := ttc.mutation.Duration(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: theoreticaltest.FieldDuration,
+		})
+		_node.Duration = value
+	}
 	if nodes := ttc.mutation.TestIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -181,6 +219,25 @@ func (ttc *TheoreticalTestCreate) createSpec() (*TheoreticalTest, *sqlgraph.Crea
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: question.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ttc.mutation.TheoTryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   theoreticaltest.TheoTryTable,
+			Columns: []string{theoreticaltest.TheoTryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: theoreticaltry.FieldID,
 				},
 			},
 		}

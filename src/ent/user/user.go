@@ -13,6 +13,8 @@ const (
 	FieldPassword = "password"
 	// EdgeRole holds the string denoting the role edge name in mutations.
 	EdgeRole = "Role"
+	// EdgeTheoTry holds the string denoting the theotry edge name in mutations.
+	EdgeTheoTry = "TheoTry"
 	// Table holds the table name of the user in the database.
 	Table = "User"
 	// RoleTable is the table that holds the Role relation/edge.
@@ -22,6 +24,13 @@ const (
 	RoleInverseTable = "Role"
 	// RoleColumn is the table column denoting the Role relation/edge.
 	RoleColumn = "role_user"
+	// TheoTryTable is the table that holds the TheoTry relation/edge.
+	TheoTryTable = "TheoreticalTry"
+	// TheoTryInverseTable is the table name for the TheoreticalTry entity.
+	// It exists in this package in order to avoid circular dependency with the "theoreticaltry" package.
+	TheoTryInverseTable = "TheoreticalTry"
+	// TheoTryColumn is the table column denoting the TheoTry relation/edge.
+	TheoTryColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.

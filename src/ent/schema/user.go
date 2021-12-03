@@ -36,5 +36,6 @@ func (User) Edges() []ent.Edge {
 		edge.From("Role", Role.Type).
 			Ref("User").
 			Unique(),
+		edge.To("TheoTry", TheoreticalTry.Type),
 	}
 }

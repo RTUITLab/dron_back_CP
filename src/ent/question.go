@@ -31,9 +31,11 @@ type QuestionEdges struct {
 	TheoreticalTest *TheoreticalTest `json:"TheoreticalTest,omitempty"`
 	// Answer holds the value of the Answer edge.
 	Answer []*Answer `json:"Answer,omitempty"`
+	// TryAnswer holds the value of the TryAnswer edge.
+	TryAnswer []*TryAnswer `json:"TryAnswer,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // TheoreticalTestOrErr returns the TheoreticalTest value or an error if the edge
@@ -57,6 +59,15 @@ func (e QuestionEdges) AnswerOrErr() ([]*Answer, error) {
 		return e.Answer, nil
 	}
 	return nil, &NotLoadedError{edge: "Answer"}
+}
+
+// TryAnswerOrErr returns the TryAnswer value or an error if the edge
+// was not loaded in eager-loading.
+func (e QuestionEdges) TryAnswerOrErr() ([]*TryAnswer, error) {
+	if e.loadedTypes[2] {
+		return e.TryAnswer, nil
+	}
+	return nil, &NotLoadedError{edge: "TryAnswer"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -114,6 +125,11 @@ func (q *Question) QueryTheoreticalTest() *TheoreticalTestQuery {
 // QueryAnswer queries the "Answer" edge of the Question entity.
 func (q *Question) QueryAnswer() *AnswerQuery {
 	return (&QuestionClient{config: q.config}).QueryAnswer(q)
+}
+
+// QueryTryAnswer queries the "TryAnswer" edge of the Question entity.
+func (q *Question) QueryTryAnswer() *TryAnswerQuery {
+	return (&QuestionClient{config: q.config}).QueryTryAnswer(q)
 }
 
 // Update returns a builder for updating this Question.

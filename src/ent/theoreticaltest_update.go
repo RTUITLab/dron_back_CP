@@ -14,6 +14,7 @@ import (
 	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltry"
 )
 
 // TheoreticalTestUpdate is the builder for updating TheoreticalTest entities.
@@ -35,6 +36,33 @@ func (ttu *TheoreticalTestUpdate) SetTestID(i int) *TheoreticalTestUpdate {
 	return ttu
 }
 
+// SetDuration sets the "duration" field.
+func (ttu *TheoreticalTestUpdate) SetDuration(i int) *TheoreticalTestUpdate {
+	ttu.mutation.ResetDuration()
+	ttu.mutation.SetDuration(i)
+	return ttu
+}
+
+// SetNillableDuration sets the "duration" field if the given value is not nil.
+func (ttu *TheoreticalTestUpdate) SetNillableDuration(i *int) *TheoreticalTestUpdate {
+	if i != nil {
+		ttu.SetDuration(*i)
+	}
+	return ttu
+}
+
+// AddDuration adds i to the "duration" field.
+func (ttu *TheoreticalTestUpdate) AddDuration(i int) *TheoreticalTestUpdate {
+	ttu.mutation.AddDuration(i)
+	return ttu
+}
+
+// ClearDuration clears the value of the "duration" field.
+func (ttu *TheoreticalTestUpdate) ClearDuration() *TheoreticalTestUpdate {
+	ttu.mutation.ClearDuration()
+	return ttu
+}
+
 // SetTest sets the "Test" edge to the Test entity.
 func (ttu *TheoreticalTestUpdate) SetTest(t *Test) *TheoreticalTestUpdate {
 	return ttu.SetTestID(t.ID)
@@ -53,6 +81,21 @@ func (ttu *TheoreticalTestUpdate) AddQuestion(q ...*Question) *TheoreticalTestUp
 		ids[i] = q[i].ID
 	}
 	return ttu.AddQuestionIDs(ids...)
+}
+
+// AddTheoTryIDs adds the "TheoTry" edge to the TheoreticalTry entity by IDs.
+func (ttu *TheoreticalTestUpdate) AddTheoTryIDs(ids ...int) *TheoreticalTestUpdate {
+	ttu.mutation.AddTheoTryIDs(ids...)
+	return ttu
+}
+
+// AddTheoTry adds the "TheoTry" edges to the TheoreticalTry entity.
+func (ttu *TheoreticalTestUpdate) AddTheoTry(t ...*TheoreticalTry) *TheoreticalTestUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return ttu.AddTheoTryIDs(ids...)
 }
 
 // Mutation returns the TheoreticalTestMutation object of the builder.
@@ -85,6 +128,27 @@ func (ttu *TheoreticalTestUpdate) RemoveQuestion(q ...*Question) *TheoreticalTes
 		ids[i] = q[i].ID
 	}
 	return ttu.RemoveQuestionIDs(ids...)
+}
+
+// ClearTheoTry clears all "TheoTry" edges to the TheoreticalTry entity.
+func (ttu *TheoreticalTestUpdate) ClearTheoTry() *TheoreticalTestUpdate {
+	ttu.mutation.ClearTheoTry()
+	return ttu
+}
+
+// RemoveTheoTryIDs removes the "TheoTry" edge to TheoreticalTry entities by IDs.
+func (ttu *TheoreticalTestUpdate) RemoveTheoTryIDs(ids ...int) *TheoreticalTestUpdate {
+	ttu.mutation.RemoveTheoTryIDs(ids...)
+	return ttu
+}
+
+// RemoveTheoTry removes "TheoTry" edges to TheoreticalTry entities.
+func (ttu *TheoreticalTestUpdate) RemoveTheoTry(t ...*TheoreticalTry) *TheoreticalTestUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return ttu.RemoveTheoTryIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -172,6 +236,26 @@ func (ttu *TheoreticalTestUpdate) sqlSave(ctx context.Context) (n int, err error
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := ttu.mutation.Duration(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: theoreticaltest.FieldDuration,
+		})
+	}
+	if value, ok := ttu.mutation.AddedDuration(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: theoreticaltest.FieldDuration,
+		})
+	}
+	if ttu.mutation.DurationCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: theoreticaltest.FieldDuration,
+		})
 	}
 	if ttu.mutation.TestCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -262,6 +346,60 @@ func (ttu *TheoreticalTestUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ttu.mutation.TheoTryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   theoreticaltest.TheoTryTable,
+			Columns: []string{theoreticaltest.TheoTryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: theoreticaltry.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ttu.mutation.RemovedTheoTryIDs(); len(nodes) > 0 && !ttu.mutation.TheoTryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   theoreticaltest.TheoTryTable,
+			Columns: []string{theoreticaltest.TheoTryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: theoreticaltry.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ttu.mutation.TheoTryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   theoreticaltest.TheoTryTable,
+			Columns: []string{theoreticaltest.TheoTryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: theoreticaltry.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ttu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{theoreticaltest.Label}
@@ -287,6 +425,33 @@ func (ttuo *TheoreticalTestUpdateOne) SetTestID(i int) *TheoreticalTestUpdateOne
 	return ttuo
 }
 
+// SetDuration sets the "duration" field.
+func (ttuo *TheoreticalTestUpdateOne) SetDuration(i int) *TheoreticalTestUpdateOne {
+	ttuo.mutation.ResetDuration()
+	ttuo.mutation.SetDuration(i)
+	return ttuo
+}
+
+// SetNillableDuration sets the "duration" field if the given value is not nil.
+func (ttuo *TheoreticalTestUpdateOne) SetNillableDuration(i *int) *TheoreticalTestUpdateOne {
+	if i != nil {
+		ttuo.SetDuration(*i)
+	}
+	return ttuo
+}
+
+// AddDuration adds i to the "duration" field.
+func (ttuo *TheoreticalTestUpdateOne) AddDuration(i int) *TheoreticalTestUpdateOne {
+	ttuo.mutation.AddDuration(i)
+	return ttuo
+}
+
+// ClearDuration clears the value of the "duration" field.
+func (ttuo *TheoreticalTestUpdateOne) ClearDuration() *TheoreticalTestUpdateOne {
+	ttuo.mutation.ClearDuration()
+	return ttuo
+}
+
 // SetTest sets the "Test" edge to the Test entity.
 func (ttuo *TheoreticalTestUpdateOne) SetTest(t *Test) *TheoreticalTestUpdateOne {
 	return ttuo.SetTestID(t.ID)
@@ -305,6 +470,21 @@ func (ttuo *TheoreticalTestUpdateOne) AddQuestion(q ...*Question) *TheoreticalTe
 		ids[i] = q[i].ID
 	}
 	return ttuo.AddQuestionIDs(ids...)
+}
+
+// AddTheoTryIDs adds the "TheoTry" edge to the TheoreticalTry entity by IDs.
+func (ttuo *TheoreticalTestUpdateOne) AddTheoTryIDs(ids ...int) *TheoreticalTestUpdateOne {
+	ttuo.mutation.AddTheoTryIDs(ids...)
+	return ttuo
+}
+
+// AddTheoTry adds the "TheoTry" edges to the TheoreticalTry entity.
+func (ttuo *TheoreticalTestUpdateOne) AddTheoTry(t ...*TheoreticalTry) *TheoreticalTestUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return ttuo.AddTheoTryIDs(ids...)
 }
 
 // Mutation returns the TheoreticalTestMutation object of the builder.
@@ -337,6 +517,27 @@ func (ttuo *TheoreticalTestUpdateOne) RemoveQuestion(q ...*Question) *Theoretica
 		ids[i] = q[i].ID
 	}
 	return ttuo.RemoveQuestionIDs(ids...)
+}
+
+// ClearTheoTry clears all "TheoTry" edges to the TheoreticalTry entity.
+func (ttuo *TheoreticalTestUpdateOne) ClearTheoTry() *TheoreticalTestUpdateOne {
+	ttuo.mutation.ClearTheoTry()
+	return ttuo
+}
+
+// RemoveTheoTryIDs removes the "TheoTry" edge to TheoreticalTry entities by IDs.
+func (ttuo *TheoreticalTestUpdateOne) RemoveTheoTryIDs(ids ...int) *TheoreticalTestUpdateOne {
+	ttuo.mutation.RemoveTheoTryIDs(ids...)
+	return ttuo
+}
+
+// RemoveTheoTry removes "TheoTry" edges to TheoreticalTry entities.
+func (ttuo *TheoreticalTestUpdateOne) RemoveTheoTry(t ...*TheoreticalTry) *TheoreticalTestUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return ttuo.RemoveTheoTryIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -449,6 +650,26 @@ func (ttuo *TheoreticalTestUpdateOne) sqlSave(ctx context.Context) (_node *Theor
 			}
 		}
 	}
+	if value, ok := ttuo.mutation.Duration(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: theoreticaltest.FieldDuration,
+		})
+	}
+	if value, ok := ttuo.mutation.AddedDuration(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: theoreticaltest.FieldDuration,
+		})
+	}
+	if ttuo.mutation.DurationCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: theoreticaltest.FieldDuration,
+		})
+	}
 	if ttuo.mutation.TestCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -530,6 +751,60 @@ func (ttuo *TheoreticalTestUpdateOne) sqlSave(ctx context.Context) (_node *Theor
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: question.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ttuo.mutation.TheoTryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   theoreticaltest.TheoTryTable,
+			Columns: []string{theoreticaltest.TheoTryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: theoreticaltry.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ttuo.mutation.RemovedTheoTryIDs(); len(nodes) > 0 && !ttuo.mutation.TheoTryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   theoreticaltest.TheoTryTable,
+			Columns: []string{theoreticaltest.TheoTryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: theoreticaltry.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ttuo.mutation.TheoTryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   theoreticaltest.TheoTryTable,
+			Columns: []string{theoreticaltest.TheoTryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: theoreticaltry.FieldID,
 				},
 			},
 		}
