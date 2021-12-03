@@ -27,6 +27,14 @@ func StartServer() error {
 		).Error("Failed to create db client")
 	}
 
+	client.Schema.Create(
+		context.Background(),
+		schema.WithForeignKeys(true),
+		schema.WithGlobalUniqueID(true),
+		schema.WithDropIndex(true),
+		schema.WithDropColumn(true),
+	)
+
 	controllers := &Controllers{
 		User: user.New(client),
 		Role: role.New(client),
@@ -53,14 +61,6 @@ func StartServer() error {
 	}
 
 	r := NewRouter(controllers)
-
-	client.Schema.Create(
-		context.Background(),
-		schema.WithForeignKeys(true),
-		schema.WithGlobalUniqueID(true),
-		schema.WithDropIndex(true),
-		schema.WithDropColumn(true),
-	)
 
 	return r.Run(fmt.Sprintf(":%s", config.App.Port))
 }
