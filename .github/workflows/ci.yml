@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build_push_image:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build image
+        env:
+          TAG: ${{ github.run_number }}
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker-compose build
+          docker-compose push
+      - name: Update service
+        uses: appleboy/ssh-action@master
+        env:
+          IMAGE_API: ghcr.io/rtuitlab/cp_hack_dron_api:${{ github.run_number }}
+          SERVICE_API: cp_dron_dron_api
+          IMAGE_PROXY: ghcr.io/rtuitlab/cp_hack_dron_proxy:${{ github.run_number }}
+          SERVICE_PROXY: cp_dron_proxy
+        with:
+          host: ${{ secrets.RTUITLAB_MANAGER_VM_HOST }}
+          username: ${{ secrets.RTUITLAB_MANAGER_VM_USERNAME }}
+          key: ${{ secrets.RTUITLAB_MANAGER_VM_SSH_KEY }}
+          envs: IMAGE_API,SERVICE_API,IMAGE_PROXY,SERVICE_PROXY
+          script: |
+            docker service update --image $IMAGE_API $SERVICE_API --with-registry-auth
+            docker service update --image $IMAGE_PROXY $SERVICE_PROXY --with-registry-auth
