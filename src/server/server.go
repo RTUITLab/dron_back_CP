@@ -43,6 +43,15 @@ func StartServer() error {
 		).Error("Failed to create starty up roles")
 	}
 
+	if err := controllers.User.CreateUserOnStartUp(); err != nil {
+		log.WithFields(
+			log.Fields{
+				"func": "StartServer",
+				"err": err,
+			},
+		).Error("Failed to create starty up roles")
+	}
+
 	r := NewRouter(controllers)
 
 	client.Schema.Create(

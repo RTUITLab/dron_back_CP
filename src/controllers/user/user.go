@@ -374,3 +374,21 @@ func (u UserController) getRoleID(ctx context.Context, roleStr string) (int, err
 
 	return u.Client.Role.Query().Where(role.Role(roleStr)).OnlyID(ctx)
 }
+
+func (u UserController) CreateUserOnStartUp() error {
+	role, err := u.Client.Role.Query().Where(role.Role("admin")).Only(context.Background())
+	if err != nil {
+		return err
+	}
+
+	if _, err := u.Client.User.Create().SetRole(role).SetPassword("root").SetLogin("root").
+		Save(context.Background()); ent.IsConstraintError(err) {
+			// Pass
+		} else if ent.IsNotFound(err) {
+			// Passs
+		} else if err != nil {
+			return err
+		}
+
+	return nil
+}

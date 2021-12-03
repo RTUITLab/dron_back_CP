@@ -41,5 +41,6 @@ func (PractTest) Edges() []ent.Edge {
 			Required(),
 		edge.To("Task", Task.Type).
 			Unique(),
+		edge.To("PractTry", PractTry.Type),
 	}
 }
