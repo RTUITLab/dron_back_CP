@@ -11,7 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/schema"
-	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 )
 
 // PractTestCreate is the builder for creating a PractTest entity.
@@ -21,9 +21,9 @@ type PractTestCreate struct {
 	hooks    []Hook
 }
 
-// SetSubmoduletestID sets the "submoduletest_id" field.
-func (ptc *PractTestCreate) SetSubmoduletestID(i int) *PractTestCreate {
-	ptc.mutation.SetSubmoduletestID(i)
+// SetTestID sets the "test_id" field.
+func (ptc *PractTestCreate) SetTestID(i int) *PractTestCreate {
+	ptc.mutation.SetTestID(i)
 	return ptc
 }
 
@@ -33,15 +33,9 @@ func (ptc *PractTestCreate) SetConfig(so schema.JSONObject) *PractTestCreate {
 	return ptc
 }
 
-// SetSubModuleTestID sets the "SubModuleTest" edge to the SubModuleTest entity by ID.
-func (ptc *PractTestCreate) SetSubModuleTestID(id int) *PractTestCreate {
-	ptc.mutation.SetSubModuleTestID(id)
-	return ptc
-}
-
-// SetSubModuleTest sets the "SubModuleTest" edge to the SubModuleTest entity.
-func (ptc *PractTestCreate) SetSubModuleTest(s *SubModuleTest) *PractTestCreate {
-	return ptc.SetSubModuleTestID(s.ID)
+// SetTest sets the "Test" edge to the Test entity.
+func (ptc *PractTestCreate) SetTest(t *Test) *PractTestCreate {
+	return ptc.SetTestID(t.ID)
 }
 
 // Mutation returns the PractTestMutation object of the builder.
@@ -114,14 +108,14 @@ func (ptc *PractTestCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (ptc *PractTestCreate) check() error {
-	if _, ok := ptc.mutation.SubmoduletestID(); !ok {
-		return &ValidationError{Name: "submoduletest_id", err: errors.New(`ent: missing required field "submoduletest_id"`)}
+	if _, ok := ptc.mutation.TestID(); !ok {
+		return &ValidationError{Name: "test_id", err: errors.New(`ent: missing required field "test_id"`)}
 	}
 	if _, ok := ptc.mutation.Config(); !ok {
 		return &ValidationError{Name: "config", err: errors.New(`ent: missing required field "config"`)}
 	}
-	if _, ok := ptc.mutation.SubModuleTestID(); !ok {
-		return &ValidationError{Name: "SubModuleTest", err: errors.New("ent: missing required edge \"SubModuleTest\"")}
+	if _, ok := ptc.mutation.TestID(); !ok {
+		return &ValidationError{Name: "Test", err: errors.New("ent: missing required edge \"Test\"")}
 	}
 	return nil
 }
@@ -158,24 +152,24 @@ func (ptc *PractTestCreate) createSpec() (*PractTest, *sqlgraph.CreateSpec) {
 		})
 		_node.Config = value
 	}
-	if nodes := ptc.mutation.SubModuleTestIDs(); len(nodes) > 0 {
+	if nodes := ptc.mutation.TestIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   practtest.SubModuleTestTable,
-			Columns: []string{practtest.SubModuleTestColumn},
+			Table:   practtest.TestTable,
+			Columns: []string{practtest.TestColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: submoduletest.FieldID,
+					Column: test.FieldID,
 				},
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.SubmoduletestID = nodes[0]
+		_node.TestID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

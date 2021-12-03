@@ -17,6 +17,7 @@ type SubModuleTest struct {
 func (SubModuleTest) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("submodule_id"),
+		field.Int("test_id"),
 	}
 }
 
@@ -34,15 +35,10 @@ func (SubModuleTest) Edges() []ent.Edge {
 			Unique().
 			Field("submodule_id").
 			Required(),
-		edge.To("TherTest", TheoreticalTest.Type).
+		edge.From("Test", Test.Type).
+			Ref("SubmoduleTest").
 			Unique().
-			Annotations(
-				entsql.Annotation{OnDelete: entsql.Cascade},
-			),
-		edge.To("PractTest", PractTest.Type).
-			Unique().
-			Annotations(
-				entsql.Annotation{OnDelete: entsql.Cascade},
-			),
+			Field("test_id").
+			Required(),
 	}
 }

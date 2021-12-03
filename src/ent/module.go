@@ -30,9 +30,11 @@ type ModuleEdges struct {
 	ModuleDependOn []*ModuleDependcies `json:"ModuleDependOn,omitempty"`
 	// SubModules holds the value of the SubModules edge.
 	SubModules []*SubModule `json:"SubModules,omitempty"`
+	// Test holds the value of the Test edge.
+	Test []*ModuleTest `json:"Test,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // ModuleDependciesOrErr returns the ModuleDependcies value or an error if the edge
@@ -60,6 +62,15 @@ func (e ModuleEdges) SubModulesOrErr() ([]*SubModule, error) {
 		return e.SubModules, nil
 	}
 	return nil, &NotLoadedError{edge: "SubModules"}
+}
+
+// TestOrErr returns the Test value or an error if the edge
+// was not loaded in eager-loading.
+func (e ModuleEdges) TestOrErr() ([]*ModuleTest, error) {
+	if e.loadedTypes[3] {
+		return e.Test, nil
+	}
+	return nil, &NotLoadedError{edge: "Test"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -116,6 +127,11 @@ func (m *Module) QueryModuleDependOn() *ModuleDependciesQuery {
 // QuerySubModules queries the "SubModules" edge of the Module entity.
 func (m *Module) QuerySubModules() *SubModuleQuery {
 	return (&ModuleClient{config: m.config}).QuerySubModules(m)
+}
+
+// QueryTest queries the "Test" edge of the Module entity.
+func (m *Module) QueryTest() *ModuleTestQuery {
+	return (&ModuleClient{config: m.config}).QueryTest(m)
 }
 
 // Update returns a builder for updating this Module.

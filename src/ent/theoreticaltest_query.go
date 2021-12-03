@@ -14,7 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/predicate"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
-	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
 )
 
@@ -28,8 +28,8 @@ type TheoreticalTestQuery struct {
 	fields     []string
 	predicates []predicate.TheoreticalTest
 	// eager-loading edges.
-	withSubModuleTest *SubModuleTestQuery
-	withQuestion      *QuestionQuery
+	withTest     *TestQuery
+	withQuestion *QuestionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -66,9 +66,9 @@ func (ttq *TheoreticalTestQuery) Order(o ...OrderFunc) *TheoreticalTestQuery {
 	return ttq
 }
 
-// QuerySubModuleTest chains the current query on the "SubModuleTest" edge.
-func (ttq *TheoreticalTestQuery) QuerySubModuleTest() *SubModuleTestQuery {
-	query := &SubModuleTestQuery{config: ttq.config}
+// QueryTest chains the current query on the "Test" edge.
+func (ttq *TheoreticalTestQuery) QueryTest() *TestQuery {
+	query := &TestQuery{config: ttq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := ttq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -79,8 +79,8 @@ func (ttq *TheoreticalTestQuery) QuerySubModuleTest() *SubModuleTestQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(theoreticaltest.Table, theoreticaltest.FieldID, selector),
-			sqlgraph.To(submoduletest.Table, submoduletest.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, theoreticaltest.SubModuleTestTable, theoreticaltest.SubModuleTestColumn),
+			sqlgraph.To(test.Table, test.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, theoreticaltest.TestTable, theoreticaltest.TestColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(ttq.driver.Dialect(), step)
 		return fromU, nil
@@ -286,27 +286,27 @@ func (ttq *TheoreticalTestQuery) Clone() *TheoreticalTestQuery {
 		return nil
 	}
 	return &TheoreticalTestQuery{
-		config:            ttq.config,
-		limit:             ttq.limit,
-		offset:            ttq.offset,
-		order:             append([]OrderFunc{}, ttq.order...),
-		predicates:        append([]predicate.TheoreticalTest{}, ttq.predicates...),
-		withSubModuleTest: ttq.withSubModuleTest.Clone(),
-		withQuestion:      ttq.withQuestion.Clone(),
+		config:       ttq.config,
+		limit:        ttq.limit,
+		offset:       ttq.offset,
+		order:        append([]OrderFunc{}, ttq.order...),
+		predicates:   append([]predicate.TheoreticalTest{}, ttq.predicates...),
+		withTest:     ttq.withTest.Clone(),
+		withQuestion: ttq.withQuestion.Clone(),
 		// clone intermediate query.
 		sql:  ttq.sql.Clone(),
 		path: ttq.path,
 	}
 }
 
-// WithSubModuleTest tells the query-builder to eager-load the nodes that are connected to
-// the "SubModuleTest" edge. The optional arguments are used to configure the query builder of the edge.
-func (ttq *TheoreticalTestQuery) WithSubModuleTest(opts ...func(*SubModuleTestQuery)) *TheoreticalTestQuery {
-	query := &SubModuleTestQuery{config: ttq.config}
+// WithTest tells the query-builder to eager-load the nodes that are connected to
+// the "Test" edge. The optional arguments are used to configure the query builder of the edge.
+func (ttq *TheoreticalTestQuery) WithTest(opts ...func(*TestQuery)) *TheoreticalTestQuery {
+	query := &TestQuery{config: ttq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	ttq.withSubModuleTest = query
+	ttq.withTest = query
 	return ttq
 }
 
@@ -327,12 +327,12 @@ func (ttq *TheoreticalTestQuery) WithQuestion(opts ...func(*QuestionQuery)) *The
 // Example:
 //
 //	var v []struct {
-//		SubmoduletestID int `json:"submoduletest_id,omitempty"`
+//		TestID int `json:"test_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.TheoreticalTest.Query().
-//		GroupBy(theoreticaltest.FieldSubmoduletestID).
+//		GroupBy(theoreticaltest.FieldTestID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -354,11 +354,11 @@ func (ttq *TheoreticalTestQuery) GroupBy(field string, fields ...string) *Theore
 // Example:
 //
 //	var v []struct {
-//		SubmoduletestID int `json:"submoduletest_id,omitempty"`
+//		TestID int `json:"test_id,omitempty"`
 //	}
 //
 //	client.TheoreticalTest.Query().
-//		Select(theoreticaltest.FieldSubmoduletestID).
+//		Select(theoreticaltest.FieldTestID).
 //		Scan(ctx, &v)
 //
 func (ttq *TheoreticalTestQuery) Select(fields ...string) *TheoreticalTestSelect {
@@ -387,7 +387,7 @@ func (ttq *TheoreticalTestQuery) sqlAll(ctx context.Context) ([]*TheoreticalTest
 		nodes       = []*TheoreticalTest{}
 		_spec       = ttq.querySpec()
 		loadedTypes = [2]bool{
-			ttq.withSubModuleTest != nil,
+			ttq.withTest != nil,
 			ttq.withQuestion != nil,
 		}
 	)
@@ -411,17 +411,17 @@ func (ttq *TheoreticalTestQuery) sqlAll(ctx context.Context) ([]*TheoreticalTest
 		return nodes, nil
 	}
 
-	if query := ttq.withSubModuleTest; query != nil {
+	if query := ttq.withTest; query != nil {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*TheoreticalTest)
 		for i := range nodes {
-			fk := nodes[i].SubmoduletestID
+			fk := nodes[i].TestID
 			if _, ok := nodeids[fk]; !ok {
 				ids = append(ids, fk)
 			}
 			nodeids[fk] = append(nodeids[fk], nodes[i])
 		}
-		query.Where(submoduletest.IDIn(ids...))
+		query.Where(test.IDIn(ids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
@@ -429,10 +429,10 @@ func (ttq *TheoreticalTestQuery) sqlAll(ctx context.Context) ([]*TheoreticalTest
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "submoduletest_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "test_id" returned %v`, n.ID)
 			}
 			for i := range nodes {
-				nodes[i].Edges.SubModuleTest = n
+				nodes[i].Edges.Test = n
 			}
 		}
 	}

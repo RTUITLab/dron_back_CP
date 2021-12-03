@@ -9,12 +9,12 @@ const (
 	FieldID = "id"
 	// FieldSubmoduleID holds the string denoting the submodule_id field in the database.
 	FieldSubmoduleID = "submodule_id"
+	// FieldTestID holds the string denoting the test_id field in the database.
+	FieldTestID = "test_id"
 	// EdgeSubModule holds the string denoting the submodule edge name in mutations.
 	EdgeSubModule = "SubModule"
-	// EdgeTherTest holds the string denoting the thertest edge name in mutations.
-	EdgeTherTest = "TherTest"
-	// EdgePractTest holds the string denoting the practtest edge name in mutations.
-	EdgePractTest = "PractTest"
+	// EdgeTest holds the string denoting the test edge name in mutations.
+	EdgeTest = "Test"
 	// Table holds the table name of the submoduletest in the database.
 	Table = "SubModuleTest"
 	// SubModuleTable is the table that holds the SubModule relation/edge.
@@ -24,26 +24,20 @@ const (
 	SubModuleInverseTable = "SubModule"
 	// SubModuleColumn is the table column denoting the SubModule relation/edge.
 	SubModuleColumn = "submodule_id"
-	// TherTestTable is the table that holds the TherTest relation/edge.
-	TherTestTable = "TheoreticalTest"
-	// TherTestInverseTable is the table name for the TheoreticalTest entity.
-	// It exists in this package in order to avoid circular dependency with the "theoreticaltest" package.
-	TherTestInverseTable = "TheoreticalTest"
-	// TherTestColumn is the table column denoting the TherTest relation/edge.
-	TherTestColumn = "submoduletest_id"
-	// PractTestTable is the table that holds the PractTest relation/edge.
-	PractTestTable = "PractTest"
-	// PractTestInverseTable is the table name for the PractTest entity.
-	// It exists in this package in order to avoid circular dependency with the "practtest" package.
-	PractTestInverseTable = "PractTest"
-	// PractTestColumn is the table column denoting the PractTest relation/edge.
-	PractTestColumn = "submoduletest_id"
+	// TestTable is the table that holds the Test relation/edge.
+	TestTable = "SubModuleTest"
+	// TestInverseTable is the table name for the Test entity.
+	// It exists in this package in order to avoid circular dependency with the "test" package.
+	TestInverseTable = "Test"
+	// TestColumn is the table column denoting the Test relation/edge.
+	TestColumn = "test_id"
 )
 
 // Columns holds all SQL columns for submoduletest fields.
 var Columns = []string{
 	FieldID,
 	FieldSubmoduleID,
+	FieldTestID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

@@ -7,21 +7,21 @@ const (
 	Label = "theoretical_test"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldSubmoduletestID holds the string denoting the submoduletest_id field in the database.
-	FieldSubmoduletestID = "submoduletest_id"
-	// EdgeSubModuleTest holds the string denoting the submoduletest edge name in mutations.
-	EdgeSubModuleTest = "SubModuleTest"
+	// FieldTestID holds the string denoting the test_id field in the database.
+	FieldTestID = "test_id"
+	// EdgeTest holds the string denoting the test edge name in mutations.
+	EdgeTest = "Test"
 	// EdgeQuestion holds the string denoting the question edge name in mutations.
 	EdgeQuestion = "Question"
 	// Table holds the table name of the theoreticaltest in the database.
 	Table = "TheoreticalTest"
-	// SubModuleTestTable is the table that holds the SubModuleTest relation/edge.
-	SubModuleTestTable = "TheoreticalTest"
-	// SubModuleTestInverseTable is the table name for the SubModuleTest entity.
-	// It exists in this package in order to avoid circular dependency with the "submoduletest" package.
-	SubModuleTestInverseTable = "SubModuleTest"
-	// SubModuleTestColumn is the table column denoting the SubModuleTest relation/edge.
-	SubModuleTestColumn = "submoduletest_id"
+	// TestTable is the table that holds the Test relation/edge.
+	TestTable = "TheoreticalTest"
+	// TestInverseTable is the table name for the Test entity.
+	// It exists in this package in order to avoid circular dependency with the "test" package.
+	TestInverseTable = "Test"
+	// TestColumn is the table column denoting the Test relation/edge.
+	TestColumn = "test_id"
 	// QuestionTable is the table that holds the Question relation/edge.
 	QuestionTable = "Question"
 	// QuestionInverseTable is the table name for the Question entity.
@@ -34,7 +34,7 @@ const (
 // Columns holds all SQL columns for theoreticaltest fields.
 var Columns = []string{
 	FieldID,
-	FieldSubmoduletestID,
+	FieldTestID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

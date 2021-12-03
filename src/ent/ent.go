@@ -11,11 +11,13 @@ import (
 	"github.com/0B1t322/CP-Rosseti-Back/ent/answer"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/module"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/moduledependcies"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/moduletest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/role"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/user"
 )
@@ -41,11 +43,13 @@ func columnChecker(table string) func(string) error {
 		answer.Table:           answer.ValidColumn,
 		module.Table:           module.ValidColumn,
 		moduledependcies.Table: moduledependcies.ValidColumn,
+		moduletest.Table:       moduletest.ValidColumn,
 		practtest.Table:        practtest.ValidColumn,
 		question.Table:         question.ValidColumn,
 		role.Table:             role.ValidColumn,
 		submodule.Table:        submodule.ValidColumn,
 		submoduletest.Table:    submoduletest.ValidColumn,
+		test.Table:             test.ValidColumn,
 		theoreticaltest.Table:  theoreticaltest.ValidColumn,
 		user.Table:             user.ValidColumn,
 	}

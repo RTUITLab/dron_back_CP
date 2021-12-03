@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
 )
 
@@ -16,8 +16,8 @@ type TheoreticalTest struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// SubmoduletestID holds the value of the "submoduletest_id" field.
-	SubmoduletestID int `json:"submoduletest_id,omitempty"`
+	// TestID holds the value of the "test_id" field.
+	TestID int `json:"test_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TheoreticalTestQuery when eager-loading is set.
 	Edges TheoreticalTestEdges `json:"edges"`
@@ -25,8 +25,8 @@ type TheoreticalTest struct {
 
 // TheoreticalTestEdges holds the relations/edges for other nodes in the graph.
 type TheoreticalTestEdges struct {
-	// SubModuleTest holds the value of the SubModuleTest edge.
-	SubModuleTest *SubModuleTest `json:"SubModuleTest,omitempty"`
+	// Test holds the value of the Test edge.
+	Test *Test `json:"Test,omitempty"`
 	// Question holds the value of the Question edge.
 	Question []*Question `json:"Question,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -34,18 +34,18 @@ type TheoreticalTestEdges struct {
 	loadedTypes [2]bool
 }
 
-// SubModuleTestOrErr returns the SubModuleTest value or an error if the edge
+// TestOrErr returns the Test value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e TheoreticalTestEdges) SubModuleTestOrErr() (*SubModuleTest, error) {
+func (e TheoreticalTestEdges) TestOrErr() (*Test, error) {
 	if e.loadedTypes[0] {
-		if e.SubModuleTest == nil {
-			// The edge SubModuleTest was loaded in eager-loading,
+		if e.Test == nil {
+			// The edge Test was loaded in eager-loading,
 			// but was not found.
-			return nil, &NotFoundError{label: submoduletest.Label}
+			return nil, &NotFoundError{label: test.Label}
 		}
-		return e.SubModuleTest, nil
+		return e.Test, nil
 	}
-	return nil, &NotLoadedError{edge: "SubModuleTest"}
+	return nil, &NotLoadedError{edge: "Test"}
 }
 
 // QuestionOrErr returns the Question value or an error if the edge
@@ -62,7 +62,7 @@ func (*TheoreticalTest) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case theoreticaltest.FieldID, theoreticaltest.FieldSubmoduletestID:
+		case theoreticaltest.FieldID, theoreticaltest.FieldTestID:
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type TheoreticalTest", columns[i])
@@ -85,20 +85,20 @@ func (tt *TheoreticalTest) assignValues(columns []string, values []interface{}) 
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			tt.ID = int(value.Int64)
-		case theoreticaltest.FieldSubmoduletestID:
+		case theoreticaltest.FieldTestID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field submoduletest_id", values[i])
+				return fmt.Errorf("unexpected type %T for field test_id", values[i])
 			} else if value.Valid {
-				tt.SubmoduletestID = int(value.Int64)
+				tt.TestID = int(value.Int64)
 			}
 		}
 	}
 	return nil
 }
 
-// QuerySubModuleTest queries the "SubModuleTest" edge of the TheoreticalTest entity.
-func (tt *TheoreticalTest) QuerySubModuleTest() *SubModuleTestQuery {
-	return (&TheoreticalTestClient{config: tt.config}).QuerySubModuleTest(tt)
+// QueryTest queries the "Test" edge of the TheoreticalTest entity.
+func (tt *TheoreticalTest) QueryTest() *TestQuery {
+	return (&TheoreticalTestClient{config: tt.config}).QueryTest(tt)
 }
 
 // QueryQuestion queries the "Question" edge of the TheoreticalTest entity.
@@ -129,8 +129,8 @@ func (tt *TheoreticalTest) String() string {
 	var builder strings.Builder
 	builder.WriteString("TheoreticalTest(")
 	builder.WriteString(fmt.Sprintf("id=%v", tt.ID))
-	builder.WriteString(", submoduletest_id=")
-	builder.WriteString(fmt.Sprintf("%v", tt.SubmoduletestID))
+	builder.WriteString(", test_id=")
+	builder.WriteString(fmt.Sprintf("%v", tt.TestID))
 	builder.WriteByte(')')
 	return builder.String()
 }

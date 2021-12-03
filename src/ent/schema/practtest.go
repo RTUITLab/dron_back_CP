@@ -19,7 +19,7 @@ type JSONObject map[string]interface{}
 // Fields of the PractTest.
 func (PractTest) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("submoduletest_id"),
+		field.Int("test_id"),
 		field.JSON("config", JSONObject{}),
 	}
 }
@@ -33,10 +33,10 @@ func (PractTest) Annotations() []schema.Annotation {
 // Edges of the PractTest.
 func (PractTest) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("SubModuleTest", SubModuleTest.Type).
+		edge.From("Test", Test.Type).
 			Ref("PractTest").
 			Unique().
-			Field("submoduletest_id").
+			Field("test_id").
 			Required(),
 	}
 }

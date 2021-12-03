@@ -7,10 +7,9 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
-	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 )
 
 // SubModuleTest is the model entity for the SubModuleTest schema.
@@ -20,6 +19,8 @@ type SubModuleTest struct {
 	ID int `json:"id,omitempty"`
 	// SubmoduleID holds the value of the "submodule_id" field.
 	SubmoduleID int `json:"submodule_id,omitempty"`
+	// TestID holds the value of the "test_id" field.
+	TestID int `json:"test_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SubModuleTestQuery when eager-loading is set.
 	Edges SubModuleTestEdges `json:"edges"`
@@ -29,13 +30,11 @@ type SubModuleTest struct {
 type SubModuleTestEdges struct {
 	// SubModule holds the value of the SubModule edge.
 	SubModule *SubModule `json:"SubModule,omitempty"`
-	// TherTest holds the value of the TherTest edge.
-	TherTest *TheoreticalTest `json:"TherTest,omitempty"`
-	// PractTest holds the value of the PractTest edge.
-	PractTest *PractTest `json:"PractTest,omitempty"`
+	// Test holds the value of the Test edge.
+	Test *Test `json:"Test,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [2]bool
 }
 
 // SubModuleOrErr returns the SubModule value or an error if the edge
@@ -52,32 +51,18 @@ func (e SubModuleTestEdges) SubModuleOrErr() (*SubModule, error) {
 	return nil, &NotLoadedError{edge: "SubModule"}
 }
 
-// TherTestOrErr returns the TherTest value or an error if the edge
+// TestOrErr returns the Test value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e SubModuleTestEdges) TherTestOrErr() (*TheoreticalTest, error) {
+func (e SubModuleTestEdges) TestOrErr() (*Test, error) {
 	if e.loadedTypes[1] {
-		if e.TherTest == nil {
-			// The edge TherTest was loaded in eager-loading,
+		if e.Test == nil {
+			// The edge Test was loaded in eager-loading,
 			// but was not found.
-			return nil, &NotFoundError{label: theoreticaltest.Label}
+			return nil, &NotFoundError{label: test.Label}
 		}
-		return e.TherTest, nil
+		return e.Test, nil
 	}
-	return nil, &NotLoadedError{edge: "TherTest"}
-}
-
-// PractTestOrErr returns the PractTest value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e SubModuleTestEdges) PractTestOrErr() (*PractTest, error) {
-	if e.loadedTypes[2] {
-		if e.PractTest == nil {
-			// The edge PractTest was loaded in eager-loading,
-			// but was not found.
-			return nil, &NotFoundError{label: practtest.Label}
-		}
-		return e.PractTest, nil
-	}
-	return nil, &NotLoadedError{edge: "PractTest"}
+	return nil, &NotLoadedError{edge: "Test"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -85,7 +70,7 @@ func (*SubModuleTest) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case submoduletest.FieldID, submoduletest.FieldSubmoduleID:
+		case submoduletest.FieldID, submoduletest.FieldSubmoduleID, submoduletest.FieldTestID:
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type SubModuleTest", columns[i])
@@ -114,6 +99,12 @@ func (smt *SubModuleTest) assignValues(columns []string, values []interface{}) e
 			} else if value.Valid {
 				smt.SubmoduleID = int(value.Int64)
 			}
+		case submoduletest.FieldTestID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field test_id", values[i])
+			} else if value.Valid {
+				smt.TestID = int(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -124,14 +115,9 @@ func (smt *SubModuleTest) QuerySubModule() *SubModuleQuery {
 	return (&SubModuleTestClient{config: smt.config}).QuerySubModule(smt)
 }
 
-// QueryTherTest queries the "TherTest" edge of the SubModuleTest entity.
-func (smt *SubModuleTest) QueryTherTest() *TheoreticalTestQuery {
-	return (&SubModuleTestClient{config: smt.config}).QueryTherTest(smt)
-}
-
-// QueryPractTest queries the "PractTest" edge of the SubModuleTest entity.
-func (smt *SubModuleTest) QueryPractTest() *PractTestQuery {
-	return (&SubModuleTestClient{config: smt.config}).QueryPractTest(smt)
+// QueryTest queries the "Test" edge of the SubModuleTest entity.
+func (smt *SubModuleTest) QueryTest() *TestQuery {
+	return (&SubModuleTestClient{config: smt.config}).QueryTest(smt)
 }
 
 // Update returns a builder for updating this SubModuleTest.
@@ -159,6 +145,8 @@ func (smt *SubModuleTest) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v", smt.ID))
 	builder.WriteString(", submodule_id=")
 	builder.WriteString(fmt.Sprintf("%v", smt.SubmoduleID))
+	builder.WriteString(", test_id=")
+	builder.WriteString(fmt.Sprintf("%v", smt.TestID))
 	builder.WriteByte(')')
 	return builder.String()
 }

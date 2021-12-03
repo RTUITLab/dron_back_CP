@@ -48,6 +48,19 @@ func (f ModuleDependciesFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return f(ctx, mv)
 }
 
+// The ModuleTestFunc type is an adapter to allow the use of ordinary
+// function as ModuleTest mutator.
+type ModuleTestFunc func(context.Context, *ent.ModuleTestMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ModuleTestFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.ModuleTestMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ModuleTestMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The PractTestFunc type is an adapter to allow the use of ordinary
 // function as PractTest mutator.
 type PractTestFunc func(context.Context, *ent.PractTestMutation) (ent.Value, error)
@@ -109,6 +122,19 @@ func (f SubModuleTestFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	mv, ok := m.(*ent.SubModuleTestMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SubModuleTestMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The TestFunc type is an adapter to allow the use of ordinary
+// function as Test mutator.
+type TestFunc func(context.Context, *ent.TestMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TestFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.TestMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TestMutation", m)
 	}
 	return f(ctx, mv)
 }

@@ -26,7 +26,7 @@ var (
 				Symbol:     "answers_Question_Answer",
 				Columns:    []*schema.Column{AnswersColumns[3]},
 				RefColumns: []*schema.Column{QuestionColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -67,11 +67,37 @@ var (
 			},
 		},
 	}
+	// ModuleTestColumns holds the columns for the "ModuleTest" table.
+	ModuleTestColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "module_id", Type: field.TypeInt, Nullable: true},
+		{Name: "test_id", Type: field.TypeInt, Nullable: true},
+	}
+	// ModuleTestTable holds the schema information for the "ModuleTest" table.
+	ModuleTestTable = &schema.Table{
+		Name:       "ModuleTest",
+		Columns:    ModuleTestColumns,
+		PrimaryKey: []*schema.Column{ModuleTestColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ModuleTest_Module_Test",
+				Columns:    []*schema.Column{ModuleTestColumns[1]},
+				RefColumns: []*schema.Column{ModuleColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "ModuleTest_Test_ModuleTest",
+				Columns:    []*schema.Column{ModuleTestColumns[2]},
+				RefColumns: []*schema.Column{TestColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// PractTestColumns holds the columns for the "PractTest" table.
 	PractTestColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "config", Type: field.TypeJSON},
-		{Name: "submoduletest_id", Type: field.TypeInt, Unique: true, Nullable: true},
+		{Name: "test_id", Type: field.TypeInt, Nullable: true},
 	}
 	// PractTestTable holds the schema information for the "PractTest" table.
 	PractTestTable = &schema.Table{
@@ -80,10 +106,10 @@ var (
 		PrimaryKey: []*schema.Column{PractTestColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "PractTest_SubModuleTest_PractTest",
+				Symbol:     "PractTest_Test_PractTest",
 				Columns:    []*schema.Column{PractTestColumns[2]},
-				RefColumns: []*schema.Column{SubModuleTestColumns[0]},
-				OnDelete:   schema.SetNull,
+				RefColumns: []*schema.Column{TestColumns[0]},
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -103,7 +129,7 @@ var (
 				Symbol:     "Question_TheoreticalTest_Question",
 				Columns:    []*schema.Column{QuestionColumns[2]},
 				RefColumns: []*schema.Column{TheoreticalTestColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -143,6 +169,7 @@ var (
 	SubModuleTestColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "submodule_id", Type: field.TypeInt, Unique: true, Nullable: true},
+		{Name: "test_id", Type: field.TypeInt, Nullable: true},
 	}
 	// SubModuleTestTable holds the schema information for the "SubModuleTest" table.
 	SubModuleTestTable = &schema.Table{
@@ -156,12 +183,29 @@ var (
 				RefColumns: []*schema.Column{SubModuleColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
+			{
+				Symbol:     "SubModuleTest_Test_SubmoduleTest",
+				Columns:    []*schema.Column{SubModuleTestColumns[2]},
+				RefColumns: []*schema.Column{TestColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
 		},
+	}
+	// TestColumns holds the columns for the "Test" table.
+	TestColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "test_type", Type: field.TypeString},
+	}
+	// TestTable holds the schema information for the "Test" table.
+	TestTable = &schema.Table{
+		Name:       "Test",
+		Columns:    TestColumns,
+		PrimaryKey: []*schema.Column{TestColumns[0]},
 	}
 	// TheoreticalTestColumns holds the columns for the "TheoreticalTest" table.
 	TheoreticalTestColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "submoduletest_id", Type: field.TypeInt, Unique: true, Nullable: true},
+		{Name: "test_id", Type: field.TypeInt, Nullable: true},
 	}
 	// TheoreticalTestTable holds the schema information for the "TheoreticalTest" table.
 	TheoreticalTestTable = &schema.Table{
@@ -170,10 +214,10 @@ var (
 		PrimaryKey: []*schema.Column{TheoreticalTestColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "TheoreticalTest_SubModuleTest_TherTest",
+				Symbol:     "TheoreticalTest_Test_TherTest",
 				Columns:    []*schema.Column{TheoreticalTestColumns[1]},
-				RefColumns: []*schema.Column{SubModuleTestColumns[0]},
-				OnDelete:   schema.SetNull,
+				RefColumns: []*schema.Column{TestColumns[0]},
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -203,11 +247,13 @@ var (
 		AnswersTable,
 		ModuleTable,
 		ModuleDependciesTable,
+		ModuleTestTable,
 		PractTestTable,
 		QuestionTable,
 		RoleTable,
 		SubModuleTable,
 		SubModuleTestTable,
+		TestTable,
 		TheoreticalTestTable,
 		UserTable,
 	}
@@ -223,7 +269,12 @@ func init() {
 	ModuleDependciesTable.Annotation = &entsql.Annotation{
 		Table: "ModuleDependcies",
 	}
-	PractTestTable.ForeignKeys[0].RefTable = SubModuleTestTable
+	ModuleTestTable.ForeignKeys[0].RefTable = ModuleTable
+	ModuleTestTable.ForeignKeys[1].RefTable = TestTable
+	ModuleTestTable.Annotation = &entsql.Annotation{
+		Table: "ModuleTest",
+	}
+	PractTestTable.ForeignKeys[0].RefTable = TestTable
 	PractTestTable.Annotation = &entsql.Annotation{
 		Table: "PractTest",
 	}
@@ -239,10 +290,14 @@ func init() {
 		Table: "SubModule",
 	}
 	SubModuleTestTable.ForeignKeys[0].RefTable = SubModuleTable
+	SubModuleTestTable.ForeignKeys[1].RefTable = TestTable
 	SubModuleTestTable.Annotation = &entsql.Annotation{
 		Table: "SubModuleTest",
 	}
-	TheoreticalTestTable.ForeignKeys[0].RefTable = SubModuleTestTable
+	TestTable.Annotation = &entsql.Annotation{
+		Table: "Test",
+	}
+	TheoreticalTestTable.ForeignKeys[0].RefTable = TestTable
 	TheoreticalTestTable.Annotation = &entsql.Annotation{
 		Table: "TheoreticalTest",
 	}

@@ -10,7 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/schema"
-	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 )
 
 // PractTest is the model entity for the PractTest schema.
@@ -18,8 +18,8 @@ type PractTest struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// SubmoduletestID holds the value of the "submoduletest_id" field.
-	SubmoduletestID int `json:"submoduletest_id,omitempty"`
+	// TestID holds the value of the "test_id" field.
+	TestID int `json:"test_id,omitempty"`
 	// Config holds the value of the "config" field.
 	Config schema.JSONObject `json:"config,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -29,25 +29,25 @@ type PractTest struct {
 
 // PractTestEdges holds the relations/edges for other nodes in the graph.
 type PractTestEdges struct {
-	// SubModuleTest holds the value of the SubModuleTest edge.
-	SubModuleTest *SubModuleTest `json:"SubModuleTest,omitempty"`
+	// Test holds the value of the Test edge.
+	Test *Test `json:"Test,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// SubModuleTestOrErr returns the SubModuleTest value or an error if the edge
+// TestOrErr returns the Test value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PractTestEdges) SubModuleTestOrErr() (*SubModuleTest, error) {
+func (e PractTestEdges) TestOrErr() (*Test, error) {
 	if e.loadedTypes[0] {
-		if e.SubModuleTest == nil {
-			// The edge SubModuleTest was loaded in eager-loading,
+		if e.Test == nil {
+			// The edge Test was loaded in eager-loading,
 			// but was not found.
-			return nil, &NotFoundError{label: submoduletest.Label}
+			return nil, &NotFoundError{label: test.Label}
 		}
-		return e.SubModuleTest, nil
+		return e.Test, nil
 	}
-	return nil, &NotLoadedError{edge: "SubModuleTest"}
+	return nil, &NotLoadedError{edge: "Test"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -57,7 +57,7 @@ func (*PractTest) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case practtest.FieldConfig:
 			values[i] = new([]byte)
-		case practtest.FieldID, practtest.FieldSubmoduletestID:
+		case practtest.FieldID, practtest.FieldTestID:
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type PractTest", columns[i])
@@ -80,11 +80,11 @@ func (pt *PractTest) assignValues(columns []string, values []interface{}) error 
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			pt.ID = int(value.Int64)
-		case practtest.FieldSubmoduletestID:
+		case practtest.FieldTestID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field submoduletest_id", values[i])
+				return fmt.Errorf("unexpected type %T for field test_id", values[i])
 			} else if value.Valid {
-				pt.SubmoduletestID = int(value.Int64)
+				pt.TestID = int(value.Int64)
 			}
 		case practtest.FieldConfig:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -99,9 +99,9 @@ func (pt *PractTest) assignValues(columns []string, values []interface{}) error 
 	return nil
 }
 
-// QuerySubModuleTest queries the "SubModuleTest" edge of the PractTest entity.
-func (pt *PractTest) QuerySubModuleTest() *SubModuleTestQuery {
-	return (&PractTestClient{config: pt.config}).QuerySubModuleTest(pt)
+// QueryTest queries the "Test" edge of the PractTest entity.
+func (pt *PractTest) QueryTest() *TestQuery {
+	return (&PractTestClient{config: pt.config}).QueryTest(pt)
 }
 
 // Update returns a builder for updating this PractTest.
@@ -127,8 +127,8 @@ func (pt *PractTest) String() string {
 	var builder strings.Builder
 	builder.WriteString("PractTest(")
 	builder.WriteString(fmt.Sprintf("id=%v", pt.ID))
-	builder.WriteString(", submoduletest_id=")
-	builder.WriteString(fmt.Sprintf("%v", pt.SubmoduletestID))
+	builder.WriteString(", test_id=")
+	builder.WriteString(fmt.Sprintf("%v", pt.TestID))
 	builder.WriteString(", config=")
 	builder.WriteString(fmt.Sprintf("%v", pt.Config))
 	builder.WriteByte(')')

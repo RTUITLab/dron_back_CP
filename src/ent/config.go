@@ -27,11 +27,13 @@ type hooks struct {
 	Answer           []ent.Hook
 	Module           []ent.Hook
 	ModuleDependcies []ent.Hook
+	ModuleTest       []ent.Hook
 	PractTest        []ent.Hook
 	Question         []ent.Hook
 	Role             []ent.Hook
 	SubModule        []ent.Hook
 	SubModuleTest    []ent.Hook
+	Test             []ent.Hook
 	TheoreticalTest  []ent.Hook
 	User             []ent.Hook
 }

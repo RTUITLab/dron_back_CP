@@ -1,12 +1,17 @@
 package module
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/0B1t322/CP-Rosseti-Back/ent"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/module"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/moduledependcies"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/moduletest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
 	e "github.com/0B1t322/CP-Rosseti-Back/models/err"
 	"github.com/gin-gonic/gin"
@@ -181,6 +186,60 @@ func (m ModuleController) AddSubModule(c *gin.Context) {
 
 }
 
+func (m ModuleController) GetOrCreateTestForSubModule(
+	ctx context.Context,
+	id int,
+) (*ent.Test, error) {
+	var get *ent.Test
+
+	if test, err := m.Client.Test.Query().Where(
+		test.HasSubmoduleTestWith(
+			submoduletest.HasSubModuleWith(
+				submodule.ID(id),
+			),
+		),
+	).Only(ctx); ent.IsNotFound(err) {
+		test, err := m.Client.Test.Create().SetTestType("submodule").Save(ctx)
+		if err != nil {
+			return nil, err
+		}
+		get = test
+	} else if err != nil {
+		return nil, err
+	} else {
+		get = test
+	}
+
+	return get, nil
+}
+
+func (m ModuleController) GetOrCreateTestForModule(
+	ctx context.Context,
+	id int,
+) (*ent.Test, error) {
+	var get *ent.Test
+
+	if test, err := m.Client.Test.Query().Where(
+		test.HasModuleTestWith(
+			moduletest.HasModuleWith(
+				module.ID(id),
+			),
+		),
+	).Only(ctx); ent.IsNotFound(err) {
+		test, err := m.Client.Test.Create().SetTestType("module").Save(ctx)
+		if err != nil {
+			return nil, err
+		}
+		get = test
+	} else if err != nil {
+		return nil, err
+	} else {
+		get = test
+	}
+
+	return get, nil
+}
+
 type AddSubModuleTestReq struct {
 	SubModuleID     int                       `json:"-" uri:"id"`
 	TheoreticalTest *CreateTheoreticalTestReq `json:"theoreticalTest,omitempty"`
@@ -229,7 +288,7 @@ type AddQuestionResp struct {
 type AddAnswerResp struct {
 	ID      int    `json:"id"`
 	Answer  string `json:"answer"`
-	Correct bool   `json:"correct"`
+	Correct *bool  `json:"correct,omitempty"`
 }
 
 // AddSubModuleTest
@@ -279,7 +338,24 @@ func (m ModuleController) AddSubModuleTest(c *gin.Context) {
 		}
 	}
 
-	test, err := m.Client.SubModuleTest.Create().SetSubModuleID(req.SubModuleID).Save(c)
+	Test, err := m.GetOrCreateTestForSubModule(c, req.SubModuleID)
+	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "AddSubModuleTest",
+				"err":  err,
+			},
+		).Error("Failed add submodule test")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed to add submodule test"))
+		c.Abort()
+		return
+	}
+
+	subTest, err := m.Client.SubModuleTest.Create().
+		SetSubModuleID(req.SubModuleID).
+		SetTest(Test).
+		Save(c)
 	if ent.IsConstraintError(err) {
 		log.Info("err", err)
 		c.JSON(http.StatusNotFound, e.FromString("SubModule not found"))
@@ -299,7 +375,7 @@ func (m ModuleController) AddSubModuleTest(c *gin.Context) {
 	}
 
 	if req.TheoreticalTest != nil {
-		theoTest, err := m.Client.TheoreticalTest.Create().SetSubModuleTest(test).Save(c)
+		theoTest, err := m.Client.TheoreticalTest.Create().SetTest(Test).Save(c)
 		if err != nil {
 			log.WithFields(
 				log.Fields{
@@ -355,7 +431,7 @@ func (m ModuleController) AddSubModuleTest(c *gin.Context) {
 
 	if req.PractTest != nil {
 		_, err := m.Client.PractTest.Create().
-			SetSubModuleTest(test).
+			SetTest(Test).
 			SetConfig(req.PractTest.Config).
 			Save(c)
 		if err != nil {
@@ -372,43 +448,76 @@ func (m ModuleController) AddSubModuleTest(c *gin.Context) {
 		}
 	}
 
-	getSubModuleTest, err := m.Client.SubModuleTest.
-		Query().
-		WithTherTest(
-			func(ttq *ent.TheoreticalTestQuery) {
-				ttq.WithQuestion(
-					func(qq *ent.QuestionQuery) {
-						qq.WithAnswer()
-					},
-				)
-			},
-		).
-		WithPractTest().
-		Where(submoduletest.ID(test.ID)).
-		Only(c)
-	if err != nil {
-		log.WithFields(
-			log.Fields{
-				"pkg":  "controllers/module",
-				"func": "AddSubModuleTest",
-				"err":  err,
-			},
-		).Error("Failed add submodule test")
-		c.JSON(http.StatusInternalServerError, e.FromString("Failed to add submodule test"))
-		c.Abort()
-		return
+	var getTheorTest *ent.TheoreticalTest
+	{
+		get, err := m.Client.TheoreticalTest.Query().
+			WithQuestion(
+				func(qq *ent.QuestionQuery) {
+					qq.WithAnswer()
+				},
+			).Where(
+			theoreticaltest.HasTestWith(
+				test.HasSubmoduleTestWith(
+					submoduletest.ID(subTest.ID),
+				),
+			),
+		).Only(c)
+		if ent.IsNotFound(err) {
+			// Ignore
+		} else if err != nil {
+			log.WithFields(
+				log.Fields{
+					"pkg":  "controllers/module",
+					"func": "AddSubModuleTest",
+					"err":  err,
+				},
+			).Error("Failed add submodule test")
+			c.JSON(http.StatusInternalServerError, e.FromString("Failed to add submodule test"))
+			c.Abort()
+			return
+		} else {
+			getTheorTest = get
+		}
+	}
+
+	var getPractTest *ent.PractTest
+	{
+		get, err := m.Client.PractTest.Query().
+			Where(
+				practtest.HasTestWith(
+					test.HasSubmoduleTestWith(
+						submoduletest.ID(subTest.ID),
+					),
+				),
+			).Only(c)
+		if ent.IsNotFound(err) {
+			// Ignore
+		} else if err != nil {
+			log.WithFields(
+				log.Fields{
+					"pkg":  "controllers/module",
+					"func": "AddSubModuleTest",
+					"err":  err,
+				},
+			).Error("Failed add submodule test")
+			c.JSON(http.StatusInternalServerError, e.FromString("Failed to add submodule test"))
+			c.Abort()
+			return
+		} else {
+			getPractTest = get
+		}
 	}
 
 	var resp AddSubModuleTestResp
 	{
-		resp.ID = getSubModuleTest.ID
+		resp.ID = subTest.ID
 		var test *AddTheoreticalTestResp
 
-		if getSubModuleTest.Edges.TherTest != nil {
+		if getTheorTest != nil {
 			var questions []AddQuestionResp
 			{
 				test = &AddTheoreticalTestResp{}
-				for _, question := range getSubModuleTest.Edges.TherTest.Edges.Question {
+				for _, question := range getTheorTest.Edges.Question {
 					var answers []AddAnswerResp
 					{
 						for _, answer := range question.Edges.Answer {
@@ -417,7 +526,7 @@ func (m ModuleController) AddSubModuleTest(c *gin.Context) {
 								AddAnswerResp{
 									ID:      answer.ID,
 									Answer:  answer.Answer,
-									Correct: answer.Correct,
+									Correct: &answer.Correct,
 								},
 							)
 						}
@@ -441,10 +550,10 @@ func (m ModuleController) AddSubModuleTest(c *gin.Context) {
 
 		var practTest *AddPractTestResp
 		{
-			if getSubModuleTest.Edges.PractTest != nil {
+			if getPractTest != nil {
 				practTest = &AddPractTestResp{
-					ID:     getSubModuleTest.Edges.PractTest.ID,
-					Config: getSubModuleTest.Edges.PractTest.Config,
+					ID:     getPractTest.ID,
+					Config: getPractTest.Config,
 				}
 			}
 		}
@@ -513,7 +622,11 @@ func (m ModuleController) AddTheorTest(c *gin.Context) {
 
 	subModuleTest, err := m.Client.SubModule.Query().
 		Where(submodule.ID(req.SubModuleID), submodule.HasTest()).
-		WithTest().
+		WithTest(
+			func(smtq *ent.SubModuleTestQuery) {
+				smtq.WithTest()
+			},
+		).
 		Only(c)
 	if ent.IsNotFound(err) {
 		c.JSON(http.StatusNotFound, e.FromString("SubModule test or submodule not exist"))
@@ -533,7 +646,7 @@ func (m ModuleController) AddTheorTest(c *gin.Context) {
 	}
 
 	theoTest, err := m.Client.TheoreticalTest.Create().
-		SetSubModuleTestID(subModuleTest.Edges.Test.ID).
+		SetTestID(subModuleTest.Edges.Test.Edges.Test.ID).
 		Save(c)
 	if ent.IsConstraintError(err) {
 		c.JSON(http.StatusBadRequest, e.FromString("Theor test is exist"))
@@ -625,7 +738,7 @@ func (m ModuleController) AddTheorTest(c *gin.Context) {
 							AddAnswerResp{
 								ID:      answer.ID,
 								Answer:  answer.Answer,
-								Correct: answer.Correct,
+								Correct: &answer.Correct,
 							},
 						)
 					}
@@ -703,7 +816,11 @@ func (m ModuleController) AddPractTest(c *gin.Context) {
 
 	subModuleTest, err := m.Client.SubModule.Query().
 		Where(submodule.ID(req.SubModuleID), submodule.HasTest()).
-		WithTest().
+		WithTest(
+			func(smtq *ent.SubModuleTestQuery) {
+				smtq.WithTest()
+			},
+		).
 		Only(c)
 	if ent.IsNotFound(err) {
 		c.JSON(http.StatusNotFound, e.FromString("SubModule test or submodule not exist"))
@@ -723,7 +840,7 @@ func (m ModuleController) AddPractTest(c *gin.Context) {
 	}
 
 	practTest, err := m.Client.PractTest.Create().
-		SetSubModuleTestID(subModuleTest.Edges.Test.ID).
+		SetTestID(subModuleTest.Edges.Test.Edges.Test.ID).
 		SetConfig(req.Config).
 		Save(c)
 	if ent.IsConstraintError(err) {
@@ -797,9 +914,11 @@ func (m ModuleController) UpdateConfigToPractTest(c *gin.Context) {
 	}
 
 	practTestID, err := m.Client.PractTest.Query().Where(
-		practtest.HasSubModuleTestWith(
-			submoduletest.HasSubModuleWith(
-				submodule.ID(req.SubModuleID),
+		practtest.HasTestWith(
+			test.HasSubmoduleTestWith(
+				submoduletest.HasSubModuleWith(
+					submodule.ID(req.SubModuleID),
+				),
 			),
 		),
 	).OnlyID(c)
@@ -835,7 +954,7 @@ type UpdateTheorTestReq struct {
 type UpdateQuestionReq struct {
 	ID         int                `json:"id"`
 	Question   *string            `json:"question,omitempty"`
-	Answers    []UpdateAnswersReq `json:"answers,omitepty"`
+	Answers    []UpdateAnswersReq `json:"answers,omitempty"`
 	NewAnswers []CreateAnswerReq  `json:"newAnswers,omitempty"`
 	// DeleteAnswers []int              `json:"deleteAnswers,omitempty"`
 }
@@ -892,9 +1011,11 @@ func (m ModuleController) UpdateTheorTest(c *gin.Context) {
 	}
 
 	theorTestID, err := m.Client.TheoreticalTest.Query().Where(
-		theoreticaltest.HasSubModuleTestWith(
-			submoduletest.HasSubModuleWith(
-				submodule.ID(req.SubModuleID),
+		theoreticaltest.HasTestWith(
+			test.HasSubmoduleTestWith(
+				submoduletest.HasSubModuleWith(
+					submodule.ID(req.SubModuleID),
+				),
 			),
 		),
 	).OnlyID(c)
@@ -968,7 +1089,7 @@ func (m ModuleController) UpdateTheorTest(c *gin.Context) {
 				SetQuestuionID(question.ID).
 				Save(c)
 		}
-					
+
 	}
 
 	theorTest, err := m.Client.TheoreticalTest.Query().
@@ -1005,7 +1126,7 @@ func (m ModuleController) UpdateTheorTest(c *gin.Context) {
 							AddAnswerResp{
 								ID:      answer.ID,
 								Answer:  answer.Answer,
-								Correct: answer.Correct,
+								Correct: &answer.Correct,
 							},
 						)
 					}
@@ -1030,7 +1151,7 @@ func (m ModuleController) UpdateTheorTest(c *gin.Context) {
 }
 
 type DeleteTheorTestReq struct {
-	SubModuleID		int		`json:"-" uri:"id"`
+	SubModuleID int `json:"-" uri:"id"`
 }
 
 // DeleteTheorTest
@@ -1069,9 +1190,11 @@ func (m ModuleController) DeleteTheorTest(c *gin.Context) {
 	}
 
 	if _, err := m.Client.TheoreticalTest.Delete().Where(
-		theoreticaltest.HasSubModuleTestWith(
-			submoduletest.HasSubModuleWith(
-				submodule.ID(req.SubModuleID),
+		theoreticaltest.HasTestWith(
+			test.HasSubmoduleTestWith(
+				submoduletest.HasSubModuleWith(
+					submodule.ID(req.SubModuleID),
+				),
 			),
 		),
 	).Exec(c); ent.IsNotFound(err) {
@@ -1094,4 +1217,580 @@ func (m ModuleController) DeleteTheorTest(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+type DeletePractTestReq struct {
+	SubModuleID int `json:"-" uri:"id"`
+}
+
+// DeletePractTest
+//
+// @Tags module
+//
+// @Summary delete Pract test
+//
+// @Description delete Pract test
+//
+// @Router /v1/module/submodule/{id}/test/pract [delete]
+//
+// @Security ApiKeyAuth
+//
+// @Param id path integer true "id of submodule"
+//
+// @Produce json
+//
+// @Success 200
+//
+// @Failure 400 {object} e.Error "some user error"
+//
+// @Failure 404 {object} e.Error "module not found"
+//
+// @Failure 500 {object} e.Error "internal"
+//
+// @Failure 401 {object} e.Error "not auth"
+func (m ModuleController) DeletePractTest(c *gin.Context) {
+	var req DeletePractTestReq
+	{
+		if err := c.ShouldBindUri(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("ID is not integer"))
+			c.Abort()
+			return
+		}
+	}
+
+	if _, err := m.Client.PractTest.Delete().Where(
+		practtest.HasTestWith(
+			test.HasSubmoduleTestWith(
+				submoduletest.HasSubModuleWith(
+					submodule.ID(req.SubModuleID),
+				),
+			),
+		),
+	).Exec(c); ent.IsNotFound(err) {
+		c.JSON(http.StatusNotFound, e.FromString("Pract test not found"))
+		c.Abort()
+		return
+	} else if ent.IsConstraintError(err) {
+		log.Info(err)
+	} else if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "DeletePractTest",
+				"err":  err,
+			},
+		).Error("Failed delete submodule pract test")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed delete submodule pract test"))
+		c.Abort()
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+type GetSubModuleReq struct {
+	SubModuleID int `json:"-" uri:"id"`
+}
+
+type GetSubModuleResp struct {
+	AddSubModuleResp `json",inline"`
+	Test             *AddSubModuleTestResp `json:"test"`
+}
+
+// GetSubModule
+//
+// @Tags module
+//
+// @Summary get sub module
+//
+// @Description get sub module
+//
+// @Router /v1/module/submodule/{id} [get]
+//
+// @Security ApiKeyAuth
+//
+// @Param id path integer true "id of submodule"
+//
+// @Produce json
+//
+// @Success 200 {object} GetSubModuleResp
+//
+// @Failure 400 {object} e.Error "some user error"
+//
+// @Failure 404 {object} e.Error "module not found"
+//
+// @Failure 500 {object} e.Error "internal"
+//
+// @Failure 401 {object} e.Error "not auth"
+func (m ModuleController) GetSubModule(c *gin.Context) {
+	var req GetSubModuleReq
+	{
+		if err := c.ShouldBindUri(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("ID is not integer"))
+			c.Abort()
+			return
+		}
+	}
+
+	var getSubModule *ent.SubModule
+	{
+		get, err := m.Client.SubModule.Query().
+			WithTest().
+			Where(submodule.ID(req.SubModuleID)).
+			Only(c)
+		if ent.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, e.FromString("submodule not found"))
+			c.Abort()
+			return
+		} else if err != nil {
+			log.WithFields(
+				log.Fields{
+					"pkg":  "controllers/module",
+					"func": "GetSubModule",
+					"err":  err,
+				},
+			).Error("Failed to get sub module")
+			c.JSON(http.StatusInternalServerError, e.FromString("Failed to get sub module"))
+			c.Abort()
+			return
+		} else {
+			getSubModule = get
+		}
+	}
+
+	var getTheorTest *ent.TheoreticalTest
+	{
+		get, err := m.Client.TheoreticalTest.Query().
+			WithQuestion(
+				func(qq *ent.QuestionQuery) {
+					qq.WithAnswer()
+				},
+			).Where(
+			theoreticaltest.HasTestWith(
+				test.HasSubmoduleTestWith(
+					submoduletest.HasSubModuleWith(
+						submodule.ID(req.SubModuleID),
+					),
+				),
+			),
+		).Only(c)
+		if ent.IsNotFound(err) {
+			// Ignore
+		} else if err != nil {
+			log.WithFields(
+				log.Fields{
+					"pkg":  "controllers/module",
+					"func": "GetSubModule",
+					"err":  err,
+				},
+			).Error("Failed to get sub module")
+			c.JSON(http.StatusInternalServerError, e.FromString("Failed to get sub module"))
+			c.Abort()
+			return
+		} else {
+			getTheorTest = get
+		}
+	}
+
+	var getPractTest *ent.PractTest
+	{
+		get, err := m.Client.PractTest.Query().
+			Where(
+				practtest.HasTestWith(
+					test.HasSubmoduleTestWith(
+						submoduletest.HasSubModuleWith(
+							submodule.ID(req.SubModuleID),
+						),
+					),
+				),
+			).Only(c)
+		if ent.IsNotFound(err) {
+			// Ignore
+		} else if err != nil {
+			log.WithFields(
+				log.Fields{
+					"pkg":  "controllers/module",
+					"func": "GetSubModule",
+					"err":  err,
+				},
+			).Error("Failed to get sub module")
+			c.JSON(http.StatusInternalServerError, e.FromString("Failed to get sub module"))
+			c.Abort()
+			return
+		} else {
+			getPractTest = get
+		}
+	}
+
+	var resp GetSubModuleResp
+	{
+		resp.ID = req.SubModuleID
+		resp.Name = getSubModule.Name
+		resp.Text = getSubModule.Text
+		var test *AddTheoreticalTestResp
+
+		if getTheorTest != nil {
+			var questions []AddQuestionResp
+			{
+				test = &AddTheoreticalTestResp{}
+				for _, question := range getTheorTest.Edges.Question {
+					var answers []AddAnswerResp
+					{
+						for _, answer := range question.Edges.Answer {
+							answers = append(
+								answers,
+								AddAnswerResp{
+									ID:      answer.ID,
+									Answer:  answer.Answer,
+									Correct: &answer.Correct,
+								},
+							)
+						}
+					}
+
+					questions = append(
+						questions,
+						AddQuestionResp{
+							ID:       question.ID,
+							Question: question.Question,
+							Answers:  answers,
+						},
+					)
+				}
+			}
+
+			test.Questions = questions
+		}
+
+		var practTest *AddPractTestResp
+		{
+			if getPractTest != nil {
+				practTest = &AddPractTestResp{
+					ID:     getPractTest.ID,
+					Config: getPractTest.Config,
+				}
+			}
+		}
+		if getSubModule.Edges.Test != nil {
+			resp.Test = &AddSubModuleTestResp{
+				ID:              getSubModule.Edges.Test.ID,
+				TheoretcialTest: test,
+				PractTest:       practTest,
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+type GetModuleReq struct {
+	ID int `json:"-" uri:"id"`
+}
+
+type GetModuleResp struct {
+	ID         int                `json:"id"`
+	Name       string             `json:"name"`
+	SubModules []AddSubModuleResp `json:"subModules,omitempty"`
+	DependOn   []int              `json:"dependOn,omitempty"`
+}
+
+func (m ModuleController) GetModule(ctx context.Context, id int) (*GetModuleResp, error) {
+	module, err := m.Client.Module.Query().
+		WithModuleDependcies(
+			func(mdq *ent.ModuleDependciesQuery) {
+				mdq.Where(
+					moduledependcies.DependentID(id),
+				)
+			},
+		).
+		WithSubModules().
+		Where(
+			module.ID(id),
+		).Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp GetModuleResp
+	{
+		resp.ID = module.ID
+		resp.Name = module.Name
+		if module.Edges.SubModules != nil {
+			for _, subModule := range module.Edges.SubModules {
+				resp.SubModules = append(
+					resp.SubModules,
+					AddSubModuleResp{
+						ID:       subModule.ID,
+						ModuleID: module.ID,
+						Name:     subModule.Name,
+						Text:     subModule.Text,
+					},
+				)
+			}
+		}
+
+		if module.Edges.ModuleDependcies != nil {
+			for _, dependOn := range module.Edges.ModuleDependcies {
+				resp.DependOn = append(resp.DependOn, dependOn.DependentOnID)
+			}
+		}
+	}
+
+	return &resp, nil
+}
+
+// GetModule
+//
+// @Tags module
+//
+// @Summary get  module
+//
+// @Description get  module
+//
+// @Router /v1/module/{id} [get]
+//
+// @Security ApiKeyAuth
+//
+// @Param id path integer true "id of module"
+//
+// @Produce json
+//
+// @Success 200 {object} module.GetModuleResp
+//
+// @Failure 400 {object} e.Error "some user error"
+//
+// @Failure 404 {object} e.Error "module not found"
+//
+// @Failure 500 {object} e.Error "internal"
+//
+// @Failure 401 {object} e.Error "not auth"
+func (m ModuleController) HTTPGetModule(c *gin.Context) {
+	var req GetModuleReq
+	{
+		if err := c.ShouldBindUri(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("ID is not integer"))
+			c.Abort()
+			return
+		}
+	}
+
+	resp, err := m.GetModule(c, req.ID)
+	if ent.IsNotFound(err) {
+		c.JSON(http.StatusNotFound, e.FromString("Module not found"))
+		c.Abort()
+		return
+	} else if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "GetModule",
+				"err":  err,
+			},
+		).Error("Failed to get module")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed to get module"))
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func (m ModuleController) AddModuleDependecy(
+	ctx context.Context,
+	id int,
+	depend_id int,
+) error {
+	_, err := m.Client.ModuleDependcies.Create().
+		SetDependentID(id).
+		SetDependentOnID(depend_id).
+		Save(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m ModuleController) DeleteModuleDependecy(
+	ctx context.Context,
+	id int,
+	depend_id int,
+) error {
+	_, err := m.Client.ModuleDependcies.Delete().
+		Where(
+			moduledependcies.DependentID(id),
+			moduledependcies.DependentOnID(depend_id),
+		).Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type AddModuleDependecyReq struct {
+	ID      int `json:"-" uri:"id"`
+	DepenOn int `json:"depenOn"`
+}
+
+// AddModuleDependecy
+//
+// @Tags module
+//
+// @Summary add module dependecy
+//
+// @Description Add module dependecy
+//
+// @Router /v1/module/{id}/dependecy [put]
+//
+// @Security ApiKeyAuth
+//
+// @Param id path integer true "id of module"
+//
+// @Param body body module.AddModuleDependecyReq true "body"
+//
+// @Accept json
+//
+// @Produce json
+//
+// @Success 200 {object} module.GetModuleResp
+//
+// @Failure 400 {object} e.Error "some user error"
+//
+// @Failure 404 {object} e.Error "module not found"
+//
+// @Failure 500 {object} e.Error "internal"
+//
+// @Failure 401 {object} e.Error "not auth"
+func (m ModuleController) HTTPAddModuleDependecy(
+	c *gin.Context,
+) {
+	var req AddModuleDependecyReq
+	{
+		if err := c.ShouldBindUri(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("ID is not integer"))
+			c.Abort()
+			return
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("Unexpected body"))
+			c.Abort()
+			return
+		}
+	}
+
+	if err := m.AddModuleDependecy(c, req.ID, req.DepenOn); ent.IsConstraintError(err) {
+		c.JSON(http.StatusNotFound, e.FromString("one of module not found"))
+		c.Abort()
+		return
+	} else if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "AddModuleDependecy",
+				"err":  err,
+			},
+		).Error("Failed to add module dependecy")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed to add module dependecy"))
+		c.Abort()
+		return
+	}
+
+	resp, err := m.GetModule(c, req.ID)
+	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "AddModuleDependecy",
+				"err":  err,
+			},
+		).Error("Failed to add module dependecy")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed to add module dependecy"))
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+// DeleteModuleDependecy
+//
+// @Tags module
+//
+// @Summary Delete module dependecy
+//
+// @Description Delete module dependecy
+//
+// @Router /v1/module/{id}/dependecy [delete]
+//
+// @Security ApiKeyAuth
+//
+// @Param id path integer true "id of module"
+//
+// @Param body body module.AddModuleDependecyReq true "body"
+//
+// @Accept json
+//
+// @Produce json
+//
+// @Success 200 {object} module.GetModuleResp
+//
+// @Failure 400 {object} e.Error "some user error"
+//
+// @Failure 404 {object} e.Error "module not found"
+//
+// @Failure 500 {object} e.Error "internal"
+//
+// @Failure 401 {object} e.Error "not auth"
+func (m ModuleController) HTTPDeleteModuleDependecy(
+	c *gin.Context,
+) {
+	var req AddModuleDependecyReq
+	{
+		if err := c.ShouldBindUri(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("ID is not integer"))
+			c.Abort()
+			return
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, e.FromString("Unexpected body"))
+			c.Abort()
+			return
+		}
+	}
+
+	if err := m.DeleteModuleDependecy(c, req.ID, req.DepenOn); ent.IsConstraintError(err) {
+		c.JSON(http.StatusNotFound, e.FromString("one of module not found"))
+		c.Abort()
+		return
+	} else if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "DeleteModuleDependecy",
+				"err":  err,
+			},
+		).Error("Failed to Delete module dependecy")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed to Delete module dependecy"))
+		c.Abort()
+		return
+	}
+
+	resp, err := m.GetModule(c, req.ID)
+	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"pkg":  "controllers/module",
+				"func": "DeleteModuleDependecy",
+				"err":  err,
+			},
+		).Error("Failed to Delete module dependecy")
+		c.JSON(http.StatusInternalServerError, e.FromString("Failed to Delete module dependecy"))
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
 }

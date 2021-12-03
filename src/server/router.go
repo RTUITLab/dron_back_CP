@@ -44,6 +44,9 @@ func NewRouter(c *Controllers) *gin.Engine {
 		module := v1.Group("/module")
 		{
 			module.POST("", c.Module.CreateModule)
+			module.GET("/:id", c.Module.HTTPGetModule)
+			module.PUT("/:id/dependecy", c.Module.HTTPAddModuleDependecy)
+			module.DELETE("/:id/dependecy", c.Module.HTTPDeleteModuleDependecy)
 			module.POST("/:id/submodule", c.Module.AddSubModule)
 			module.POST("/submodule/:id/test", c.Module.AddSubModuleTest)
 			module.POST("/submodule/:id/test/theor", c.Module.AddTheorTest)
@@ -52,6 +55,8 @@ func NewRouter(c *Controllers) *gin.Engine {
 			module.PUT("/submodule/:id/test/theor", c.Module.UpdateTheorTest)
 
 			module.DELETE("/submodule/:id/test/theor", c.Module.DeleteTheorTest)
+			module.DELETE("/submodule/:id/test/pract", c.Module.DeletePractTest)
+			module.GET("/submodule/:id", c.Module.GetSubModule)
 
 
 		}

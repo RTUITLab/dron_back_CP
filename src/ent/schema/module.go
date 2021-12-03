@@ -32,5 +32,6 @@ func (Module) Edges() []ent.Edge {
 		edge.To("ModuleDependcies", ModuleDependcies.Type),
 		edge.To("ModuleDependOn", ModuleDependcies.Type),
 		edge.To("SubModules", SubModule.Type),
+		edge.To("Test", ModuleTest.Type),
 	}
 }

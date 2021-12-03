@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -12,11 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/predicate"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
-	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 )
 
 // SubModuleTestQuery is the builder for querying SubModuleTest entities.
@@ -30,8 +28,7 @@ type SubModuleTestQuery struct {
 	predicates []predicate.SubModuleTest
 	// eager-loading edges.
 	withSubModule *SubModuleQuery
-	withTherTest  *TheoreticalTestQuery
-	withPractTest *PractTestQuery
+	withTest      *TestQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -90,9 +87,9 @@ func (smtq *SubModuleTestQuery) QuerySubModule() *SubModuleQuery {
 	return query
 }
 
-// QueryTherTest chains the current query on the "TherTest" edge.
-func (smtq *SubModuleTestQuery) QueryTherTest() *TheoreticalTestQuery {
-	query := &TheoreticalTestQuery{config: smtq.config}
+// QueryTest chains the current query on the "Test" edge.
+func (smtq *SubModuleTestQuery) QueryTest() *TestQuery {
+	query := &TestQuery{config: smtq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := smtq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -103,30 +100,8 @@ func (smtq *SubModuleTestQuery) QueryTherTest() *TheoreticalTestQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(submoduletest.Table, submoduletest.FieldID, selector),
-			sqlgraph.To(theoreticaltest.Table, theoreticaltest.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, submoduletest.TherTestTable, submoduletest.TherTestColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(smtq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryPractTest chains the current query on the "PractTest" edge.
-func (smtq *SubModuleTestQuery) QueryPractTest() *PractTestQuery {
-	query := &PractTestQuery{config: smtq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := smtq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := smtq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(submoduletest.Table, submoduletest.FieldID, selector),
-			sqlgraph.To(practtest.Table, practtest.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, submoduletest.PractTestTable, submoduletest.PractTestColumn),
+			sqlgraph.To(test.Table, test.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, submoduletest.TestTable, submoduletest.TestColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(smtq.driver.Dialect(), step)
 		return fromU, nil
@@ -316,8 +291,7 @@ func (smtq *SubModuleTestQuery) Clone() *SubModuleTestQuery {
 		order:         append([]OrderFunc{}, smtq.order...),
 		predicates:    append([]predicate.SubModuleTest{}, smtq.predicates...),
 		withSubModule: smtq.withSubModule.Clone(),
-		withTherTest:  smtq.withTherTest.Clone(),
-		withPractTest: smtq.withPractTest.Clone(),
+		withTest:      smtq.withTest.Clone(),
 		// clone intermediate query.
 		sql:  smtq.sql.Clone(),
 		path: smtq.path,
@@ -335,25 +309,14 @@ func (smtq *SubModuleTestQuery) WithSubModule(opts ...func(*SubModuleQuery)) *Su
 	return smtq
 }
 
-// WithTherTest tells the query-builder to eager-load the nodes that are connected to
-// the "TherTest" edge. The optional arguments are used to configure the query builder of the edge.
-func (smtq *SubModuleTestQuery) WithTherTest(opts ...func(*TheoreticalTestQuery)) *SubModuleTestQuery {
-	query := &TheoreticalTestQuery{config: smtq.config}
+// WithTest tells the query-builder to eager-load the nodes that are connected to
+// the "Test" edge. The optional arguments are used to configure the query builder of the edge.
+func (smtq *SubModuleTestQuery) WithTest(opts ...func(*TestQuery)) *SubModuleTestQuery {
+	query := &TestQuery{config: smtq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	smtq.withTherTest = query
-	return smtq
-}
-
-// WithPractTest tells the query-builder to eager-load the nodes that are connected to
-// the "PractTest" edge. The optional arguments are used to configure the query builder of the edge.
-func (smtq *SubModuleTestQuery) WithPractTest(opts ...func(*PractTestQuery)) *SubModuleTestQuery {
-	query := &PractTestQuery{config: smtq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	smtq.withPractTest = query
+	smtq.withTest = query
 	return smtq
 }
 
@@ -422,10 +385,9 @@ func (smtq *SubModuleTestQuery) sqlAll(ctx context.Context) ([]*SubModuleTest, e
 	var (
 		nodes       = []*SubModuleTest{}
 		_spec       = smtq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [2]bool{
 			smtq.withSubModule != nil,
-			smtq.withTherTest != nil,
-			smtq.withPractTest != nil,
+			smtq.withTest != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -474,51 +436,29 @@ func (smtq *SubModuleTestQuery) sqlAll(ctx context.Context) ([]*SubModuleTest, e
 		}
 	}
 
-	if query := smtq.withTherTest; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[int]*SubModuleTest)
+	if query := smtq.withTest; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*SubModuleTest)
 		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
+			fk := nodes[i].TestID
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
 		}
-		query.Where(predicate.TheoreticalTest(func(s *sql.Selector) {
-			s.Where(sql.InValues(submoduletest.TherTestColumn, fks...))
-		}))
+		query.Where(test.IDIn(ids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.SubmoduletestID
-			node, ok := nodeids[fk]
+			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "submoduletest_id" returned %v for node %v`, fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "test_id" returned %v`, n.ID)
 			}
-			node.Edges.TherTest = n
-		}
-	}
-
-	if query := smtq.withPractTest; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[int]*SubModuleTest)
-		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
-		}
-		query.Where(predicate.PractTest(func(s *sql.Selector) {
-			s.Where(sql.InValues(submoduletest.PractTestColumn, fks...))
-		}))
-		neighbors, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, n := range neighbors {
-			fk := n.SubmoduletestID
-			node, ok := nodeids[fk]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "submoduletest_id" returned %v for node %v`, fk, n.ID)
+			for i := range nodes {
+				nodes[i].Edges.Test = n
 			}
-			node.Edges.PractTest = n
 		}
 	}
 

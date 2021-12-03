@@ -12,7 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/predicate"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
-	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
 )
 
@@ -29,21 +29,15 @@ func (ttu *TheoreticalTestUpdate) Where(ps ...predicate.TheoreticalTest) *Theore
 	return ttu
 }
 
-// SetSubmoduletestID sets the "submoduletest_id" field.
-func (ttu *TheoreticalTestUpdate) SetSubmoduletestID(i int) *TheoreticalTestUpdate {
-	ttu.mutation.SetSubmoduletestID(i)
+// SetTestID sets the "test_id" field.
+func (ttu *TheoreticalTestUpdate) SetTestID(i int) *TheoreticalTestUpdate {
+	ttu.mutation.SetTestID(i)
 	return ttu
 }
 
-// SetSubModuleTestID sets the "SubModuleTest" edge to the SubModuleTest entity by ID.
-func (ttu *TheoreticalTestUpdate) SetSubModuleTestID(id int) *TheoreticalTestUpdate {
-	ttu.mutation.SetSubModuleTestID(id)
-	return ttu
-}
-
-// SetSubModuleTest sets the "SubModuleTest" edge to the SubModuleTest entity.
-func (ttu *TheoreticalTestUpdate) SetSubModuleTest(s *SubModuleTest) *TheoreticalTestUpdate {
-	return ttu.SetSubModuleTestID(s.ID)
+// SetTest sets the "Test" edge to the Test entity.
+func (ttu *TheoreticalTestUpdate) SetTest(t *Test) *TheoreticalTestUpdate {
+	return ttu.SetTestID(t.ID)
 }
 
 // AddQuestionIDs adds the "Question" edge to the Question entity by IDs.
@@ -66,9 +60,9 @@ func (ttu *TheoreticalTestUpdate) Mutation() *TheoreticalTestMutation {
 	return ttu.mutation
 }
 
-// ClearSubModuleTest clears the "SubModuleTest" edge to the SubModuleTest entity.
-func (ttu *TheoreticalTestUpdate) ClearSubModuleTest() *TheoreticalTestUpdate {
-	ttu.mutation.ClearSubModuleTest()
+// ClearTest clears the "Test" edge to the Test entity.
+func (ttu *TheoreticalTestUpdate) ClearTest() *TheoreticalTestUpdate {
+	ttu.mutation.ClearTest()
 	return ttu
 }
 
@@ -155,8 +149,8 @@ func (ttu *TheoreticalTestUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (ttu *TheoreticalTestUpdate) check() error {
-	if _, ok := ttu.mutation.SubModuleTestID(); ttu.mutation.SubModuleTestCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"SubModuleTest\"")
+	if _, ok := ttu.mutation.TestID(); ttu.mutation.TestCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"Test\"")
 	}
 	return nil
 }
@@ -179,33 +173,33 @@ func (ttu *TheoreticalTestUpdate) sqlSave(ctx context.Context) (n int, err error
 			}
 		}
 	}
-	if ttu.mutation.SubModuleTestCleared() {
+	if ttu.mutation.TestCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   theoreticaltest.SubModuleTestTable,
-			Columns: []string{theoreticaltest.SubModuleTestColumn},
+			Table:   theoreticaltest.TestTable,
+			Columns: []string{theoreticaltest.TestColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: submoduletest.FieldID,
+					Column: test.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ttu.mutation.SubModuleTestIDs(); len(nodes) > 0 {
+	if nodes := ttu.mutation.TestIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   theoreticaltest.SubModuleTestTable,
-			Columns: []string{theoreticaltest.SubModuleTestColumn},
+			Table:   theoreticaltest.TestTable,
+			Columns: []string{theoreticaltest.TestColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: submoduletest.FieldID,
+					Column: test.FieldID,
 				},
 			},
 		}
@@ -287,21 +281,15 @@ type TheoreticalTestUpdateOne struct {
 	mutation *TheoreticalTestMutation
 }
 
-// SetSubmoduletestID sets the "submoduletest_id" field.
-func (ttuo *TheoreticalTestUpdateOne) SetSubmoduletestID(i int) *TheoreticalTestUpdateOne {
-	ttuo.mutation.SetSubmoduletestID(i)
+// SetTestID sets the "test_id" field.
+func (ttuo *TheoreticalTestUpdateOne) SetTestID(i int) *TheoreticalTestUpdateOne {
+	ttuo.mutation.SetTestID(i)
 	return ttuo
 }
 
-// SetSubModuleTestID sets the "SubModuleTest" edge to the SubModuleTest entity by ID.
-func (ttuo *TheoreticalTestUpdateOne) SetSubModuleTestID(id int) *TheoreticalTestUpdateOne {
-	ttuo.mutation.SetSubModuleTestID(id)
-	return ttuo
-}
-
-// SetSubModuleTest sets the "SubModuleTest" edge to the SubModuleTest entity.
-func (ttuo *TheoreticalTestUpdateOne) SetSubModuleTest(s *SubModuleTest) *TheoreticalTestUpdateOne {
-	return ttuo.SetSubModuleTestID(s.ID)
+// SetTest sets the "Test" edge to the Test entity.
+func (ttuo *TheoreticalTestUpdateOne) SetTest(t *Test) *TheoreticalTestUpdateOne {
+	return ttuo.SetTestID(t.ID)
 }
 
 // AddQuestionIDs adds the "Question" edge to the Question entity by IDs.
@@ -324,9 +312,9 @@ func (ttuo *TheoreticalTestUpdateOne) Mutation() *TheoreticalTestMutation {
 	return ttuo.mutation
 }
 
-// ClearSubModuleTest clears the "SubModuleTest" edge to the SubModuleTest entity.
-func (ttuo *TheoreticalTestUpdateOne) ClearSubModuleTest() *TheoreticalTestUpdateOne {
-	ttuo.mutation.ClearSubModuleTest()
+// ClearTest clears the "Test" edge to the Test entity.
+func (ttuo *TheoreticalTestUpdateOne) ClearTest() *TheoreticalTestUpdateOne {
+	ttuo.mutation.ClearTest()
 	return ttuo
 }
 
@@ -420,8 +408,8 @@ func (ttuo *TheoreticalTestUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (ttuo *TheoreticalTestUpdateOne) check() error {
-	if _, ok := ttuo.mutation.SubModuleTestID(); ttuo.mutation.SubModuleTestCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"SubModuleTest\"")
+	if _, ok := ttuo.mutation.TestID(); ttuo.mutation.TestCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"Test\"")
 	}
 	return nil
 }
@@ -461,33 +449,33 @@ func (ttuo *TheoreticalTestUpdateOne) sqlSave(ctx context.Context) (_node *Theor
 			}
 		}
 	}
-	if ttuo.mutation.SubModuleTestCleared() {
+	if ttuo.mutation.TestCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   theoreticaltest.SubModuleTestTable,
-			Columns: []string{theoreticaltest.SubModuleTestColumn},
+			Table:   theoreticaltest.TestTable,
+			Columns: []string{theoreticaltest.TestColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: submoduletest.FieldID,
+					Column: test.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ttuo.mutation.SubModuleTestIDs(); len(nodes) > 0 {
+	if nodes := ttuo.mutation.TestIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   theoreticaltest.SubModuleTestTable,
-			Columns: []string{theoreticaltest.SubModuleTestColumn},
+			Table:   theoreticaltest.TestTable,
+			Columns: []string{theoreticaltest.TestColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: submoduletest.FieldID,
+					Column: test.FieldID,
 				},
 			},
 		}

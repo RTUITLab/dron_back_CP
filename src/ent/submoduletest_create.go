@@ -9,10 +9,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
-	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 )
 
 // SubModuleTestCreate is the builder for creating a SubModuleTest entity.
@@ -28,6 +27,12 @@ func (smtc *SubModuleTestCreate) SetSubmoduleID(i int) *SubModuleTestCreate {
 	return smtc
 }
 
+// SetTestID sets the "test_id" field.
+func (smtc *SubModuleTestCreate) SetTestID(i int) *SubModuleTestCreate {
+	smtc.mutation.SetTestID(i)
+	return smtc
+}
+
 // SetSubModuleID sets the "SubModule" edge to the SubModule entity by ID.
 func (smtc *SubModuleTestCreate) SetSubModuleID(id int) *SubModuleTestCreate {
 	smtc.mutation.SetSubModuleID(id)
@@ -39,42 +44,9 @@ func (smtc *SubModuleTestCreate) SetSubModule(s *SubModule) *SubModuleTestCreate
 	return smtc.SetSubModuleID(s.ID)
 }
 
-// SetTherTestID sets the "TherTest" edge to the TheoreticalTest entity by ID.
-func (smtc *SubModuleTestCreate) SetTherTestID(id int) *SubModuleTestCreate {
-	smtc.mutation.SetTherTestID(id)
-	return smtc
-}
-
-// SetNillableTherTestID sets the "TherTest" edge to the TheoreticalTest entity by ID if the given value is not nil.
-func (smtc *SubModuleTestCreate) SetNillableTherTestID(id *int) *SubModuleTestCreate {
-	if id != nil {
-		smtc = smtc.SetTherTestID(*id)
-	}
-	return smtc
-}
-
-// SetTherTest sets the "TherTest" edge to the TheoreticalTest entity.
-func (smtc *SubModuleTestCreate) SetTherTest(t *TheoreticalTest) *SubModuleTestCreate {
-	return smtc.SetTherTestID(t.ID)
-}
-
-// SetPractTestID sets the "PractTest" edge to the PractTest entity by ID.
-func (smtc *SubModuleTestCreate) SetPractTestID(id int) *SubModuleTestCreate {
-	smtc.mutation.SetPractTestID(id)
-	return smtc
-}
-
-// SetNillablePractTestID sets the "PractTest" edge to the PractTest entity by ID if the given value is not nil.
-func (smtc *SubModuleTestCreate) SetNillablePractTestID(id *int) *SubModuleTestCreate {
-	if id != nil {
-		smtc = smtc.SetPractTestID(*id)
-	}
-	return smtc
-}
-
-// SetPractTest sets the "PractTest" edge to the PractTest entity.
-func (smtc *SubModuleTestCreate) SetPractTest(p *PractTest) *SubModuleTestCreate {
-	return smtc.SetPractTestID(p.ID)
+// SetTest sets the "Test" edge to the Test entity.
+func (smtc *SubModuleTestCreate) SetTest(t *Test) *SubModuleTestCreate {
+	return smtc.SetTestID(t.ID)
 }
 
 // Mutation returns the SubModuleTestMutation object of the builder.
@@ -150,8 +122,14 @@ func (smtc *SubModuleTestCreate) check() error {
 	if _, ok := smtc.mutation.SubmoduleID(); !ok {
 		return &ValidationError{Name: "submodule_id", err: errors.New(`ent: missing required field "submodule_id"`)}
 	}
+	if _, ok := smtc.mutation.TestID(); !ok {
+		return &ValidationError{Name: "test_id", err: errors.New(`ent: missing required field "test_id"`)}
+	}
 	if _, ok := smtc.mutation.SubModuleID(); !ok {
 		return &ValidationError{Name: "SubModule", err: errors.New("ent: missing required edge \"SubModule\"")}
+	}
+	if _, ok := smtc.mutation.TestID(); !ok {
+		return &ValidationError{Name: "Test", err: errors.New("ent: missing required edge \"Test\"")}
 	}
 	return nil
 }
@@ -200,42 +178,24 @@ func (smtc *SubModuleTestCreate) createSpec() (*SubModuleTest, *sqlgraph.CreateS
 		_node.SubmoduleID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := smtc.mutation.TherTestIDs(); len(nodes) > 0 {
+	if nodes := smtc.mutation.TestIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   submoduletest.TherTestTable,
-			Columns: []string{submoduletest.TherTestColumn},
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   submoduletest.TestTable,
+			Columns: []string{submoduletest.TestColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: theoreticaltest.FieldID,
+					Column: test.FieldID,
 				},
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := smtc.mutation.PractTestIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   submoduletest.PractTestTable,
-			Columns: []string{submoduletest.PractTestColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: practtest.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
+		_node.TestID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

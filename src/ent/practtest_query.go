@@ -13,7 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/predicate"
-	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 )
 
 // PractTestQuery is the builder for querying PractTest entities.
@@ -26,7 +26,7 @@ type PractTestQuery struct {
 	fields     []string
 	predicates []predicate.PractTest
 	// eager-loading edges.
-	withSubModuleTest *SubModuleTestQuery
+	withTest *TestQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -63,9 +63,9 @@ func (ptq *PractTestQuery) Order(o ...OrderFunc) *PractTestQuery {
 	return ptq
 }
 
-// QuerySubModuleTest chains the current query on the "SubModuleTest" edge.
-func (ptq *PractTestQuery) QuerySubModuleTest() *SubModuleTestQuery {
-	query := &SubModuleTestQuery{config: ptq.config}
+// QueryTest chains the current query on the "Test" edge.
+func (ptq *PractTestQuery) QueryTest() *TestQuery {
+	query := &TestQuery{config: ptq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := ptq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -76,8 +76,8 @@ func (ptq *PractTestQuery) QuerySubModuleTest() *SubModuleTestQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(practtest.Table, practtest.FieldID, selector),
-			sqlgraph.To(submoduletest.Table, submoduletest.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, practtest.SubModuleTestTable, practtest.SubModuleTestColumn),
+			sqlgraph.To(test.Table, test.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, practtest.TestTable, practtest.TestColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
 		return fromU, nil
@@ -261,26 +261,26 @@ func (ptq *PractTestQuery) Clone() *PractTestQuery {
 		return nil
 	}
 	return &PractTestQuery{
-		config:            ptq.config,
-		limit:             ptq.limit,
-		offset:            ptq.offset,
-		order:             append([]OrderFunc{}, ptq.order...),
-		predicates:        append([]predicate.PractTest{}, ptq.predicates...),
-		withSubModuleTest: ptq.withSubModuleTest.Clone(),
+		config:     ptq.config,
+		limit:      ptq.limit,
+		offset:     ptq.offset,
+		order:      append([]OrderFunc{}, ptq.order...),
+		predicates: append([]predicate.PractTest{}, ptq.predicates...),
+		withTest:   ptq.withTest.Clone(),
 		// clone intermediate query.
 		sql:  ptq.sql.Clone(),
 		path: ptq.path,
 	}
 }
 
-// WithSubModuleTest tells the query-builder to eager-load the nodes that are connected to
-// the "SubModuleTest" edge. The optional arguments are used to configure the query builder of the edge.
-func (ptq *PractTestQuery) WithSubModuleTest(opts ...func(*SubModuleTestQuery)) *PractTestQuery {
-	query := &SubModuleTestQuery{config: ptq.config}
+// WithTest tells the query-builder to eager-load the nodes that are connected to
+// the "Test" edge. The optional arguments are used to configure the query builder of the edge.
+func (ptq *PractTestQuery) WithTest(opts ...func(*TestQuery)) *PractTestQuery {
+	query := &TestQuery{config: ptq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	ptq.withSubModuleTest = query
+	ptq.withTest = query
 	return ptq
 }
 
@@ -290,12 +290,12 @@ func (ptq *PractTestQuery) WithSubModuleTest(opts ...func(*SubModuleTestQuery)) 
 // Example:
 //
 //	var v []struct {
-//		SubmoduletestID int `json:"submoduletest_id,omitempty"`
+//		TestID int `json:"test_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.PractTest.Query().
-//		GroupBy(practtest.FieldSubmoduletestID).
+//		GroupBy(practtest.FieldTestID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -317,11 +317,11 @@ func (ptq *PractTestQuery) GroupBy(field string, fields ...string) *PractTestGro
 // Example:
 //
 //	var v []struct {
-//		SubmoduletestID int `json:"submoduletest_id,omitempty"`
+//		TestID int `json:"test_id,omitempty"`
 //	}
 //
 //	client.PractTest.Query().
-//		Select(practtest.FieldSubmoduletestID).
+//		Select(practtest.FieldTestID).
 //		Scan(ctx, &v)
 //
 func (ptq *PractTestQuery) Select(fields ...string) *PractTestSelect {
@@ -350,7 +350,7 @@ func (ptq *PractTestQuery) sqlAll(ctx context.Context) ([]*PractTest, error) {
 		nodes       = []*PractTest{}
 		_spec       = ptq.querySpec()
 		loadedTypes = [1]bool{
-			ptq.withSubModuleTest != nil,
+			ptq.withTest != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -373,17 +373,17 @@ func (ptq *PractTestQuery) sqlAll(ctx context.Context) ([]*PractTest, error) {
 		return nodes, nil
 	}
 
-	if query := ptq.withSubModuleTest; query != nil {
+	if query := ptq.withTest; query != nil {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*PractTest)
 		for i := range nodes {
-			fk := nodes[i].SubmoduletestID
+			fk := nodes[i].TestID
 			if _, ok := nodeids[fk]; !ok {
 				ids = append(ids, fk)
 			}
 			nodeids[fk] = append(nodeids[fk], nodes[i])
 		}
-		query.Where(submoduletest.IDIn(ids...))
+		query.Where(test.IDIn(ids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
@@ -391,10 +391,10 @@ func (ptq *PractTestQuery) sqlAll(ctx context.Context) ([]*PractTest, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "submoduletest_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "test_id" returned %v`, n.ID)
 			}
 			for i := range nodes {
-				nodes[i].Edges.SubModuleTest = n
+				nodes[i].Edges.Test = n
 			}
 		}
 	}

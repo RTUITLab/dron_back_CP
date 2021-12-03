@@ -91,29 +91,29 @@ func IDLTE(id int) predicate.PractTest {
 	})
 }
 
-// SubmoduletestID applies equality check predicate on the "submoduletest_id" field. It's identical to SubmoduletestIDEQ.
-func SubmoduletestID(v int) predicate.PractTest {
+// TestID applies equality check predicate on the "test_id" field. It's identical to TestIDEQ.
+func TestID(v int) predicate.PractTest {
 	return predicate.PractTest(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldSubmoduletestID), v))
+		s.Where(sql.EQ(s.C(FieldTestID), v))
 	})
 }
 
-// SubmoduletestIDEQ applies the EQ predicate on the "submoduletest_id" field.
-func SubmoduletestIDEQ(v int) predicate.PractTest {
+// TestIDEQ applies the EQ predicate on the "test_id" field.
+func TestIDEQ(v int) predicate.PractTest {
 	return predicate.PractTest(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldSubmoduletestID), v))
+		s.Where(sql.EQ(s.C(FieldTestID), v))
 	})
 }
 
-// SubmoduletestIDNEQ applies the NEQ predicate on the "submoduletest_id" field.
-func SubmoduletestIDNEQ(v int) predicate.PractTest {
+// TestIDNEQ applies the NEQ predicate on the "test_id" field.
+func TestIDNEQ(v int) predicate.PractTest {
 	return predicate.PractTest(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldSubmoduletestID), v))
+		s.Where(sql.NEQ(s.C(FieldTestID), v))
 	})
 }
 
-// SubmoduletestIDIn applies the In predicate on the "submoduletest_id" field.
-func SubmoduletestIDIn(vs ...int) predicate.PractTest {
+// TestIDIn applies the In predicate on the "test_id" field.
+func TestIDIn(vs ...int) predicate.PractTest {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -125,12 +125,12 @@ func SubmoduletestIDIn(vs ...int) predicate.PractTest {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldSubmoduletestID), v...))
+		s.Where(sql.In(s.C(FieldTestID), v...))
 	})
 }
 
-// SubmoduletestIDNotIn applies the NotIn predicate on the "submoduletest_id" field.
-func SubmoduletestIDNotIn(vs ...int) predicate.PractTest {
+// TestIDNotIn applies the NotIn predicate on the "test_id" field.
+func TestIDNotIn(vs ...int) predicate.PractTest {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -142,29 +142,29 @@ func SubmoduletestIDNotIn(vs ...int) predicate.PractTest {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldSubmoduletestID), v...))
+		s.Where(sql.NotIn(s.C(FieldTestID), v...))
 	})
 }
 
-// HasSubModuleTest applies the HasEdge predicate on the "SubModuleTest" edge.
-func HasSubModuleTest() predicate.PractTest {
+// HasTest applies the HasEdge predicate on the "Test" edge.
+func HasTest() predicate.PractTest {
 	return predicate.PractTest(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SubModuleTestTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, SubModuleTestTable, SubModuleTestColumn),
+			sqlgraph.To(TestTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, TestTable, TestColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasSubModuleTestWith applies the HasEdge predicate on the "SubModuleTest" edge with a given conditions (other predicates).
-func HasSubModuleTestWith(preds ...predicate.SubModuleTest) predicate.PractTest {
+// HasTestWith applies the HasEdge predicate on the "Test" edge with a given conditions (other predicates).
+func HasTestWith(preds ...predicate.Test) predicate.PractTest {
 	return predicate.PractTest(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SubModuleTestInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, SubModuleTestTable, SubModuleTestColumn),
+			sqlgraph.To(TestInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, TestTable, TestColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

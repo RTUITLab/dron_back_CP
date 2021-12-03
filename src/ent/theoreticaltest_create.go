@@ -10,7 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/question"
-	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/theoreticaltest"
 )
 
@@ -21,21 +21,15 @@ type TheoreticalTestCreate struct {
 	hooks    []Hook
 }
 
-// SetSubmoduletestID sets the "submoduletest_id" field.
-func (ttc *TheoreticalTestCreate) SetSubmoduletestID(i int) *TheoreticalTestCreate {
-	ttc.mutation.SetSubmoduletestID(i)
+// SetTestID sets the "test_id" field.
+func (ttc *TheoreticalTestCreate) SetTestID(i int) *TheoreticalTestCreate {
+	ttc.mutation.SetTestID(i)
 	return ttc
 }
 
-// SetSubModuleTestID sets the "SubModuleTest" edge to the SubModuleTest entity by ID.
-func (ttc *TheoreticalTestCreate) SetSubModuleTestID(id int) *TheoreticalTestCreate {
-	ttc.mutation.SetSubModuleTestID(id)
-	return ttc
-}
-
-// SetSubModuleTest sets the "SubModuleTest" edge to the SubModuleTest entity.
-func (ttc *TheoreticalTestCreate) SetSubModuleTest(s *SubModuleTest) *TheoreticalTestCreate {
-	return ttc.SetSubModuleTestID(s.ID)
+// SetTest sets the "Test" edge to the Test entity.
+func (ttc *TheoreticalTestCreate) SetTest(t *Test) *TheoreticalTestCreate {
+	return ttc.SetTestID(t.ID)
 }
 
 // AddQuestionIDs adds the "Question" edge to the Question entity by IDs.
@@ -123,11 +117,11 @@ func (ttc *TheoreticalTestCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (ttc *TheoreticalTestCreate) check() error {
-	if _, ok := ttc.mutation.SubmoduletestID(); !ok {
-		return &ValidationError{Name: "submoduletest_id", err: errors.New(`ent: missing required field "submoduletest_id"`)}
+	if _, ok := ttc.mutation.TestID(); !ok {
+		return &ValidationError{Name: "test_id", err: errors.New(`ent: missing required field "test_id"`)}
 	}
-	if _, ok := ttc.mutation.SubModuleTestID(); !ok {
-		return &ValidationError{Name: "SubModuleTest", err: errors.New("ent: missing required edge \"SubModuleTest\"")}
+	if _, ok := ttc.mutation.TestID(); !ok {
+		return &ValidationError{Name: "Test", err: errors.New("ent: missing required edge \"Test\"")}
 	}
 	return nil
 }
@@ -156,24 +150,24 @@ func (ttc *TheoreticalTestCreate) createSpec() (*TheoreticalTest, *sqlgraph.Crea
 			},
 		}
 	)
-	if nodes := ttc.mutation.SubModuleTestIDs(); len(nodes) > 0 {
+	if nodes := ttc.mutation.TestIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   theoreticaltest.SubModuleTestTable,
-			Columns: []string{theoreticaltest.SubModuleTestColumn},
+			Table:   theoreticaltest.TestTable,
+			Columns: []string{theoreticaltest.TestColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: submoduletest.FieldID,
+					Column: test.FieldID,
 				},
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.SubmoduletestID = nodes[0]
+		_node.TestID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ttc.mutation.QuestionIDs(); len(nodes) > 0 {

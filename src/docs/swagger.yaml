@@ -33,6 +33,11 @@ definitions:
       id:
         type: integer
     type: object
+  module.AddModuleDependecyReq:
+    properties:
+      depenOn:
+        type: integer
+    type: object
   module.AddPractTestReq:
     properties:
       config:
@@ -153,6 +158,34 @@ definitions:
         items:
           $ref: '#/definitions/module.CreateQuestionReq'
         type: array
+    type: object
+  module.GetModuleResp:
+    properties:
+      dependOn:
+        items:
+          type: integer
+        type: array
+      id:
+        type: integer
+      name:
+        type: string
+      subModules:
+        items:
+          $ref: '#/definitions/module.AddSubModuleResp'
+        type: array
+    type: object
+  module.GetSubModuleResp:
+    properties:
+      id:
+        type: integer
+      moduleID:
+        type: integer
+      name:
+        type: string
+      test:
+        $ref: '#/definitions/module.AddSubModuleTestResp'
+      text:
+        type: string
     type: object
   module.UpdateAnswersReq:
     properties:
@@ -345,6 +378,132 @@ paths:
       summary: create module
       tags:
       - module
+  /v1/module/{id}:
+    get:
+      description: get  module
+      parameters:
+      - description: id of module
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/module.GetModuleResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: get  module
+      tags:
+      - module
+  /v1/module/{id}/dependecy:
+    delete:
+      consumes:
+      - application/json
+      description: Delete module dependecy
+      parameters:
+      - description: id of module
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/module.AddModuleDependecyReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/module.GetModuleResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete module dependecy
+      tags:
+      - module
+    put:
+      consumes:
+      - application/json
+      description: Add module dependecy
+      parameters:
+      - description: id of module
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/module.AddModuleDependecyReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/module.GetModuleResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: add module dependecy
+      tags:
+      - module
   /v1/module/{id}/submodule:
     post:
       consumes:
@@ -390,6 +549,43 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: add submodule
+      tags:
+      - module
+  /v1/module/submodule/{id}:
+    get:
+      description: get sub module
+      parameters:
+      - description: id of submodule
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/module.GetSubModuleResp'
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: get sub module
       tags:
       - module
   /v1/module/submodule/{id}/test:
@@ -440,6 +636,40 @@ paths:
       tags:
       - module
   /v1/module/submodule/{id}/test/pract:
+    delete:
+      description: delete Pract test
+      parameters:
+      - description: id of submodule
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: some user error
+          schema:
+            $ref: '#/definitions/err.Error'
+        "401":
+          description: not auth
+          schema:
+            $ref: '#/definitions/err.Error'
+        "404":
+          description: module not found
+          schema:
+            $ref: '#/definitions/err.Error'
+        "500":
+          description: internal
+          schema:
+            $ref: '#/definitions/err.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: delete Pract test
+      tags:
+      - module
     post:
       consumes:
       - application/json

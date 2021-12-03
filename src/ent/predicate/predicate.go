@@ -15,6 +15,9 @@ type Module func(*sql.Selector)
 // ModuleDependcies is the predicate function for moduledependcies builders.
 type ModuleDependcies func(*sql.Selector)
 
+// ModuleTest is the predicate function for moduletest builders.
+type ModuleTest func(*sql.Selector)
+
 // PractTest is the predicate function for practtest builders.
 type PractTest func(*sql.Selector)
 
@@ -29,6 +32,9 @@ type SubModule func(*sql.Selector)
 
 // SubModuleTest is the predicate function for submoduletest builders.
 type SubModuleTest func(*sql.Selector)
+
+// Test is the predicate function for test builders.
+type Test func(*sql.Selector)
 
 // TheoreticalTest is the predicate function for theoreticaltest builders.
 type TheoreticalTest func(*sql.Selector)

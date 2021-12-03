@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/module"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/moduledependcies"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/moduletest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/predicate"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 )
@@ -31,6 +32,7 @@ type ModuleQuery struct {
 	withModuleDependcies *ModuleDependciesQuery
 	withModuleDependOn   *ModuleDependciesQuery
 	withSubModules       *SubModuleQuery
+	withTest             *ModuleTestQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -126,6 +128,28 @@ func (mq *ModuleQuery) QuerySubModules() *SubModuleQuery {
 			sqlgraph.From(module.Table, module.FieldID, selector),
 			sqlgraph.To(submodule.Table, submodule.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, module.SubModulesTable, module.SubModulesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTest chains the current query on the "Test" edge.
+func (mq *ModuleQuery) QueryTest() *ModuleTestQuery {
+	query := &ModuleTestQuery{config: mq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(module.Table, module.FieldID, selector),
+			sqlgraph.To(moduletest.Table, moduletest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, module.TestTable, module.TestColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
 		return fromU, nil
@@ -317,6 +341,7 @@ func (mq *ModuleQuery) Clone() *ModuleQuery {
 		withModuleDependcies: mq.withModuleDependcies.Clone(),
 		withModuleDependOn:   mq.withModuleDependOn.Clone(),
 		withSubModules:       mq.withSubModules.Clone(),
+		withTest:             mq.withTest.Clone(),
 		// clone intermediate query.
 		sql:  mq.sql.Clone(),
 		path: mq.path,
@@ -353,6 +378,17 @@ func (mq *ModuleQuery) WithSubModules(opts ...func(*SubModuleQuery)) *ModuleQuer
 		opt(query)
 	}
 	mq.withSubModules = query
+	return mq
+}
+
+// WithTest tells the query-builder to eager-load the nodes that are connected to
+// the "Test" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *ModuleQuery) WithTest(opts ...func(*ModuleTestQuery)) *ModuleQuery {
+	query := &ModuleTestQuery{config: mq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withTest = query
 	return mq
 }
 
@@ -421,10 +457,11 @@ func (mq *ModuleQuery) sqlAll(ctx context.Context) ([]*Module, error) {
 	var (
 		nodes       = []*Module{}
 		_spec       = mq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			mq.withModuleDependcies != nil,
 			mq.withModuleDependOn != nil,
 			mq.withSubModules != nil,
+			mq.withTest != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -523,6 +560,31 @@ func (mq *ModuleQuery) sqlAll(ctx context.Context) ([]*Module, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "module_sub_modules" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.SubModules = append(node.Edges.SubModules, n)
+		}
+	}
+
+	if query := mq.withTest; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Module)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Test = []*ModuleTest{}
+		}
+		query.Where(predicate.ModuleTest(func(s *sql.Selector) {
+			s.Where(sql.InValues(module.TestColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.ModuleID
+			node, ok := nodeids[fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "module_id" returned %v for node %v`, fk, n.ID)
+			}
+			node.Edges.Test = append(node.Edges.Test, n)
 		}
 	}
 

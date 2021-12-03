@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/module"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/moduledependcies"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/moduletest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 )
 
@@ -70,6 +71,21 @@ func (mc *ModuleCreate) AddSubModules(s ...*SubModule) *ModuleCreate {
 		ids[i] = s[i].ID
 	}
 	return mc.AddSubModuleIDs(ids...)
+}
+
+// AddTestIDs adds the "Test" edge to the ModuleTest entity by IDs.
+func (mc *ModuleCreate) AddTestIDs(ids ...int) *ModuleCreate {
+	mc.mutation.AddTestIDs(ids...)
+	return mc
+}
+
+// AddTest adds the "Test" edges to the ModuleTest entity.
+func (mc *ModuleCreate) AddTest(m ...*ModuleTest) *ModuleCreate {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mc.AddTestIDs(ids...)
 }
 
 // Mutation returns the ModuleMutation object of the builder.
@@ -229,6 +245,25 @@ func (mc *ModuleCreate) createSpec() (*Module, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: submodule.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := mc.mutation.TestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   module.TestTable,
+			Columns: []string{module.TestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: moduletest.FieldID,
 				},
 			},
 		}

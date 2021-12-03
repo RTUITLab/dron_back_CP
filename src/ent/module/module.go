@@ -15,6 +15,8 @@ const (
 	EdgeModuleDependOn = "ModuleDependOn"
 	// EdgeSubModules holds the string denoting the submodules edge name in mutations.
 	EdgeSubModules = "SubModules"
+	// EdgeTest holds the string denoting the test edge name in mutations.
+	EdgeTest = "Test"
 	// Table holds the table name of the module in the database.
 	Table = "Module"
 	// ModuleDependciesTable is the table that holds the ModuleDependcies relation/edge.
@@ -38,6 +40,13 @@ const (
 	SubModulesInverseTable = "SubModule"
 	// SubModulesColumn is the table column denoting the SubModules relation/edge.
 	SubModulesColumn = "module_sub_modules"
+	// TestTable is the table that holds the Test relation/edge.
+	TestTable = "ModuleTest"
+	// TestInverseTable is the table name for the ModuleTest entity.
+	// It exists in this package in order to avoid circular dependency with the "moduletest" package.
+	TestInverseTable = "ModuleTest"
+	// TestColumn is the table column denoting the Test relation/edge.
+	TestColumn = "module_id"
 )
 
 // Columns holds all SQL columns for module fields.

@@ -17,7 +17,7 @@ type TheoreticalTest struct {
 // Fields of the TheoreticalTest.
 func (TheoreticalTest) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("submoduletest_id"),
+		field.Int("test_id"),
 	}
 }
 
@@ -30,14 +30,14 @@ func (TheoreticalTest) Annotations() []schema.Annotation {
 // Edges of the TheoreticalTest.
 func (TheoreticalTest) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("SubModuleTest", SubModuleTest.Type).
+		edge.From("Test", Test.Type).
 			Ref("TherTest").
 			Unique().
-			Field("submoduletest_id").
+			Field("test_id").
 			Required(),
 		edge.To("Question", Question.Type).
-		Annotations(
-			entsql.Annotation{OnDelete: entsql.Cascade},
-		),
+			Annotations(
+				entsql.Annotation{OnDelete: entsql.Cascade},
+			),
 	}
 }

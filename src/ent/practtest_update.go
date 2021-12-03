@@ -13,7 +13,7 @@ import (
 	"github.com/0B1t322/CP-Rosseti-Back/ent/practtest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/predicate"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/schema"
-	"github.com/0B1t322/CP-Rosseti-Back/ent/submoduletest"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/test"
 )
 
 // PractTestUpdate is the builder for updating PractTest entities.
@@ -29,9 +29,9 @@ func (ptu *PractTestUpdate) Where(ps ...predicate.PractTest) *PractTestUpdate {
 	return ptu
 }
 
-// SetSubmoduletestID sets the "submoduletest_id" field.
-func (ptu *PractTestUpdate) SetSubmoduletestID(i int) *PractTestUpdate {
-	ptu.mutation.SetSubmoduletestID(i)
+// SetTestID sets the "test_id" field.
+func (ptu *PractTestUpdate) SetTestID(i int) *PractTestUpdate {
+	ptu.mutation.SetTestID(i)
 	return ptu
 }
 
@@ -41,15 +41,9 @@ func (ptu *PractTestUpdate) SetConfig(so schema.JSONObject) *PractTestUpdate {
 	return ptu
 }
 
-// SetSubModuleTestID sets the "SubModuleTest" edge to the SubModuleTest entity by ID.
-func (ptu *PractTestUpdate) SetSubModuleTestID(id int) *PractTestUpdate {
-	ptu.mutation.SetSubModuleTestID(id)
-	return ptu
-}
-
-// SetSubModuleTest sets the "SubModuleTest" edge to the SubModuleTest entity.
-func (ptu *PractTestUpdate) SetSubModuleTest(s *SubModuleTest) *PractTestUpdate {
-	return ptu.SetSubModuleTestID(s.ID)
+// SetTest sets the "Test" edge to the Test entity.
+func (ptu *PractTestUpdate) SetTest(t *Test) *PractTestUpdate {
+	return ptu.SetTestID(t.ID)
 }
 
 // Mutation returns the PractTestMutation object of the builder.
@@ -57,9 +51,9 @@ func (ptu *PractTestUpdate) Mutation() *PractTestMutation {
 	return ptu.mutation
 }
 
-// ClearSubModuleTest clears the "SubModuleTest" edge to the SubModuleTest entity.
-func (ptu *PractTestUpdate) ClearSubModuleTest() *PractTestUpdate {
-	ptu.mutation.ClearSubModuleTest()
+// ClearTest clears the "Test" edge to the Test entity.
+func (ptu *PractTestUpdate) ClearTest() *PractTestUpdate {
+	ptu.mutation.ClearTest()
 	return ptu
 }
 
@@ -125,8 +119,8 @@ func (ptu *PractTestUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (ptu *PractTestUpdate) check() error {
-	if _, ok := ptu.mutation.SubModuleTestID(); ptu.mutation.SubModuleTestCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"SubModuleTest\"")
+	if _, ok := ptu.mutation.TestID(); ptu.mutation.TestCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"Test\"")
 	}
 	return nil
 }
@@ -156,33 +150,33 @@ func (ptu *PractTestUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: practtest.FieldConfig,
 		})
 	}
-	if ptu.mutation.SubModuleTestCleared() {
+	if ptu.mutation.TestCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   practtest.SubModuleTestTable,
-			Columns: []string{practtest.SubModuleTestColumn},
+			Table:   practtest.TestTable,
+			Columns: []string{practtest.TestColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: submoduletest.FieldID,
+					Column: test.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptu.mutation.SubModuleTestIDs(); len(nodes) > 0 {
+	if nodes := ptu.mutation.TestIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   practtest.SubModuleTestTable,
-			Columns: []string{practtest.SubModuleTestColumn},
+			Table:   practtest.TestTable,
+			Columns: []string{practtest.TestColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: submoduletest.FieldID,
+					Column: test.FieldID,
 				},
 			},
 		}
@@ -210,9 +204,9 @@ type PractTestUpdateOne struct {
 	mutation *PractTestMutation
 }
 
-// SetSubmoduletestID sets the "submoduletest_id" field.
-func (ptuo *PractTestUpdateOne) SetSubmoduletestID(i int) *PractTestUpdateOne {
-	ptuo.mutation.SetSubmoduletestID(i)
+// SetTestID sets the "test_id" field.
+func (ptuo *PractTestUpdateOne) SetTestID(i int) *PractTestUpdateOne {
+	ptuo.mutation.SetTestID(i)
 	return ptuo
 }
 
@@ -222,15 +216,9 @@ func (ptuo *PractTestUpdateOne) SetConfig(so schema.JSONObject) *PractTestUpdate
 	return ptuo
 }
 
-// SetSubModuleTestID sets the "SubModuleTest" edge to the SubModuleTest entity by ID.
-func (ptuo *PractTestUpdateOne) SetSubModuleTestID(id int) *PractTestUpdateOne {
-	ptuo.mutation.SetSubModuleTestID(id)
-	return ptuo
-}
-
-// SetSubModuleTest sets the "SubModuleTest" edge to the SubModuleTest entity.
-func (ptuo *PractTestUpdateOne) SetSubModuleTest(s *SubModuleTest) *PractTestUpdateOne {
-	return ptuo.SetSubModuleTestID(s.ID)
+// SetTest sets the "Test" edge to the Test entity.
+func (ptuo *PractTestUpdateOne) SetTest(t *Test) *PractTestUpdateOne {
+	return ptuo.SetTestID(t.ID)
 }
 
 // Mutation returns the PractTestMutation object of the builder.
@@ -238,9 +226,9 @@ func (ptuo *PractTestUpdateOne) Mutation() *PractTestMutation {
 	return ptuo.mutation
 }
 
-// ClearSubModuleTest clears the "SubModuleTest" edge to the SubModuleTest entity.
-func (ptuo *PractTestUpdateOne) ClearSubModuleTest() *PractTestUpdateOne {
-	ptuo.mutation.ClearSubModuleTest()
+// ClearTest clears the "Test" edge to the Test entity.
+func (ptuo *PractTestUpdateOne) ClearTest() *PractTestUpdateOne {
+	ptuo.mutation.ClearTest()
 	return ptuo
 }
 
@@ -313,8 +301,8 @@ func (ptuo *PractTestUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (ptuo *PractTestUpdateOne) check() error {
-	if _, ok := ptuo.mutation.SubModuleTestID(); ptuo.mutation.SubModuleTestCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"SubModuleTest\"")
+	if _, ok := ptuo.mutation.TestID(); ptuo.mutation.TestCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"Test\"")
 	}
 	return nil
 }
@@ -361,33 +349,33 @@ func (ptuo *PractTestUpdateOne) sqlSave(ctx context.Context) (_node *PractTest, 
 			Column: practtest.FieldConfig,
 		})
 	}
-	if ptuo.mutation.SubModuleTestCleared() {
+	if ptuo.mutation.TestCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   practtest.SubModuleTestTable,
-			Columns: []string{practtest.SubModuleTestColumn},
+			Table:   practtest.TestTable,
+			Columns: []string{practtest.TestColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: submoduletest.FieldID,
+					Column: test.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptuo.mutation.SubModuleTestIDs(); len(nodes) > 0 {
+	if nodes := ptuo.mutation.TestIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   practtest.SubModuleTestTable,
-			Columns: []string{practtest.SubModuleTestColumn},
+			Table:   practtest.TestTable,
+			Columns: []string{practtest.TestColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: submoduletest.FieldID,
+					Column: test.FieldID,
 				},
 			},
 		}

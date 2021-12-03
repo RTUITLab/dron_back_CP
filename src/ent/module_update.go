@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/module"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/moduledependcies"
+	"github.com/0B1t322/CP-Rosseti-Back/ent/moduletest"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/predicate"
 	"github.com/0B1t322/CP-Rosseti-Back/ent/submodule"
 )
@@ -79,6 +80,21 @@ func (mu *ModuleUpdate) AddSubModules(s ...*SubModule) *ModuleUpdate {
 	return mu.AddSubModuleIDs(ids...)
 }
 
+// AddTestIDs adds the "Test" edge to the ModuleTest entity by IDs.
+func (mu *ModuleUpdate) AddTestIDs(ids ...int) *ModuleUpdate {
+	mu.mutation.AddTestIDs(ids...)
+	return mu
+}
+
+// AddTest adds the "Test" edges to the ModuleTest entity.
+func (mu *ModuleUpdate) AddTest(m ...*ModuleTest) *ModuleUpdate {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mu.AddTestIDs(ids...)
+}
+
 // Mutation returns the ModuleMutation object of the builder.
 func (mu *ModuleUpdate) Mutation() *ModuleMutation {
 	return mu.mutation
@@ -145,6 +161,27 @@ func (mu *ModuleUpdate) RemoveSubModules(s ...*SubModule) *ModuleUpdate {
 		ids[i] = s[i].ID
 	}
 	return mu.RemoveSubModuleIDs(ids...)
+}
+
+// ClearTest clears all "Test" edges to the ModuleTest entity.
+func (mu *ModuleUpdate) ClearTest() *ModuleUpdate {
+	mu.mutation.ClearTest()
+	return mu
+}
+
+// RemoveTestIDs removes the "Test" edge to ModuleTest entities by IDs.
+func (mu *ModuleUpdate) RemoveTestIDs(ids ...int) *ModuleUpdate {
+	mu.mutation.RemoveTestIDs(ids...)
+	return mu
+}
+
+// RemoveTest removes "Test" edges to ModuleTest entities.
+func (mu *ModuleUpdate) RemoveTest(m ...*ModuleTest) *ModuleUpdate {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mu.RemoveTestIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -388,6 +425,60 @@ func (mu *ModuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if mu.mutation.TestCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   module.TestTable,
+			Columns: []string{module.TestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: moduletest.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RemovedTestIDs(); len(nodes) > 0 && !mu.mutation.TestCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   module.TestTable,
+			Columns: []string{module.TestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: moduletest.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.TestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   module.TestTable,
+			Columns: []string{module.TestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: moduletest.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{module.Label}
@@ -458,6 +549,21 @@ func (muo *ModuleUpdateOne) AddSubModules(s ...*SubModule) *ModuleUpdateOne {
 	return muo.AddSubModuleIDs(ids...)
 }
 
+// AddTestIDs adds the "Test" edge to the ModuleTest entity by IDs.
+func (muo *ModuleUpdateOne) AddTestIDs(ids ...int) *ModuleUpdateOne {
+	muo.mutation.AddTestIDs(ids...)
+	return muo
+}
+
+// AddTest adds the "Test" edges to the ModuleTest entity.
+func (muo *ModuleUpdateOne) AddTest(m ...*ModuleTest) *ModuleUpdateOne {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return muo.AddTestIDs(ids...)
+}
+
 // Mutation returns the ModuleMutation object of the builder.
 func (muo *ModuleUpdateOne) Mutation() *ModuleMutation {
 	return muo.mutation
@@ -524,6 +630,27 @@ func (muo *ModuleUpdateOne) RemoveSubModules(s ...*SubModule) *ModuleUpdateOne {
 		ids[i] = s[i].ID
 	}
 	return muo.RemoveSubModuleIDs(ids...)
+}
+
+// ClearTest clears all "Test" edges to the ModuleTest entity.
+func (muo *ModuleUpdateOne) ClearTest() *ModuleUpdateOne {
+	muo.mutation.ClearTest()
+	return muo
+}
+
+// RemoveTestIDs removes the "Test" edge to ModuleTest entities by IDs.
+func (muo *ModuleUpdateOne) RemoveTestIDs(ids ...int) *ModuleUpdateOne {
+	muo.mutation.RemoveTestIDs(ids...)
+	return muo
+}
+
+// RemoveTest removes "Test" edges to ModuleTest entities.
+func (muo *ModuleUpdateOne) RemoveTest(m ...*ModuleTest) *ModuleUpdateOne {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return muo.RemoveTestIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -783,6 +910,60 @@ func (muo *ModuleUpdateOne) sqlSave(ctx context.Context) (_node *Module, err err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: submodule.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if muo.mutation.TestCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   module.TestTable,
+			Columns: []string{module.TestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: moduletest.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RemovedTestIDs(); len(nodes) > 0 && !muo.mutation.TestCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   module.TestTable,
+			Columns: []string{module.TestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: moduletest.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.TestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   module.TestTable,
+			Columns: []string{module.TestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: moduletest.FieldID,
 				},
 			},
 		}
